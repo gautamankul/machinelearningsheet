@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Machine Learning Performance Metrics Dashboard</title>
+    <!-- Updated MathJax CDN for better compatibility -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-radius: 12px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.2em;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #3498db;
+        }
+
+        h2 {
+            color: #2c3e50;
+            margin: 30px 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+            font-size: 1.5em;
+        }
+
+        h2:first-child {
+            margin-top: 0;
+        }
+
+        h3 {
+            color: #34495e;
+            margin: 25px 0 15px 0;
+            font-size: 1.2em;
+        }
+
+        ul {
+            margin: 15px 0 15px 25px;
+        }
+
+        li {
+            margin: 10px 0;
+            color: #555;
+        }
+
+        .formula-box {
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+
+        .formula {
+            text-align: center;
+            font-size: 1.2em;
+            margin: 15px 0;
+        }
+
+        .definition {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+
+        .section-number {
+            color: #3498db;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        strong {
+            color: #2c3e50;
+        }
+
+        .metric-explanation {
+            margin: 15px 0;
+            padding-left: 20px;
+        }
+        
+        p {
+            margin: 15px 0;
+            color: #555;
+        }
+        
+        /* Style for formulas to make them more readable */
+        .mjx-math {
+            font-size: 1.2em !important;
+        }
+        
+        .formula-text {
+            font-family: monospace;
+            background-color: #f0f0f0;
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            display: inline-block;
+        }
+        
+        /* Interactive dashboard styles */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+        
+        .dashboard-section {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        
+        .metrics-calculator {
+            grid-column: span 2;
+            background: #f0f8ff;
+            padding: 25px;
+            border-radius: 8px;
+        }
+        
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .matrix-cell {
+            padding: 15px;
+            text-align: center;
+            border-radius: 6px;
+            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .matrix-label {
+            font-size: 0.9em;
+            margin-bottom: 5px;
+            color: #666;
+        }
+        
+        .matrix-value {
+            font-size: 1.5em;
+        }
+        
+        .input-controls {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin: 25px 0;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .input-group label {
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #444;
+        }
+        
+        .input-group input {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 1.1em;
+            transition: border-color 0.3s;
+        }
+        
+        .input-group input:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        
+        .metrics-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .metric-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 10px 0;
+        }
+        
+        .metric-name {
+            font-size: 1em;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .visualization-container {
+            margin-top: 20px;
+            height: 300px;
+        }
+        
+        .f1-harmonic-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+        
+        .harmonic-bar {
+            height: 30px;
+            margin: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            border-radius: 4px;
+            transition: width 0.5s;
+        }
+        
+        @media (max-width: 900px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .metrics-calculator {
+                grid-column: span 1;
+            }
+            
+            .input-controls {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Machine Learning Performance Metrics Dashboard</h1>
+        
+        <div class="dashboard">
+            <div class="dashboard-section">
+                <h2><span class="section-number">1.</span> What is F1 Score?</h2>
+                
+                <ul>
+                    <li>F1 score is a performance metric used in machine learning to evaluate how well a classification model performs on a dataset especially when the classes are imbalanced</li>
+                    <li>F1-score is the harmonic mean of precision and recall.</li>
+                </ul>
+
+                <div class="formula-box">
+                    <div class="formula-text">
+                        F1 = 2 × (Precision × Recall) / (Precision + Recall)
+                    </div>
+                </div>
+                
+                <div class="f1-harmonic-visual" id="harmonicVisual">
+                    <!-- Harmonic mean visualization will be inserted here -->
+                </div>
+                
+                <h3><span class="section-number">1.1</span> Precision:</h3>
+                <ul>
+                    <li>It is a measure of the accuracy of the positive predictions.</li>
+                    <li>It refers to the proportion of correct positive predictions (True Positives) out of all the positive predictions made by the model (True Positives + False Positives)</li>
+                </ul>
+
+                <div class="formula-box">
+                    <div class="formula-text">
+                        Precision = True Positives / (True Positives + False Positives)
+                    </div>
+                </div>
+
+                <h3><span class="section-number">1.2</span> Recall:</h3>
+                <ul>
+                    <li>It is the ratio of True Positives to the total actual positives (True Positives + False Negatives).</li>
+                    <li>Measures the proportion of actual positive instances that were correctly identified by the model</li>
+                </ul>
+
+                <div class="formula-box">
+                    <div class="formula-text">
+                        Recall = True Positives / (True Positives + False Negatives)
+                    </div>
+                </div>
+            </div>
+            
+            <div class="dashboard-section">
+                <div class="definition">
+                    <h3><span class="section-number">2.</span> Definition of Confusion Matrix</h3>
+                    <ul>
+                        <li>A confusion matrix shows how many predictions a classification model got right and wrong by categorizing them into true positives, false positives, true negatives, and false negatives.</li>
+                        <li>A confusion matrix is a tabular representation used to evaluate the performance of a classification model by comparing actual labels with predicted labels.</li>
+                    </ul>
+                </div>
+                
+                <h3>Confusion Matrix Visualization</h3>
+                <div class="matrix-grid" id="confusionMatrix">
+                    <!-- Confusion matrix will be inserted here -->
+                </div>
+                
+                <h3>Where are Precision/Recall Matrix Considered?</h3>
+                <p>Precision and recall are first computed from the confusion matrix, and F1-score combines them using a harmonic mean, penalizing imbalance between the two.</p>
+            </div>
+            
+            <div class="metrics-calculator">
+                <h2><span class="section-number">3.</span> Interactive Metrics Calculator</h2>
+                
+                <p>Adjust the values in the confusion matrix to see how they affect performance metrics:</p>
+                
+                <div class="input-controls">
+                    <div class="input-group">
+                        <label for="tp">True Positives (TP):</label>
+                        <input type="number" id="tp" min="0" value="50">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="fp">False Positives (FP):</label>
+                        <input type="number" id="fp" min="0" value="10">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="tn">True Negatives (TN):</label>
+                        <input type="number" id="tn" min="0" value="120">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="fn">False Negatives (FN):</label>
+                        <input type="number" id="fn" min="0" value="20">
+                    </div>
+                </div>
+                
+                <div class="metrics-results" id="metricsResults">
+                    <!-- Metrics results will be inserted here -->
+                </div>
+                
+                <div class="visualization-container">
+                    <canvas id="metricsChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <h2><span class="section-number">4.</span> How to Measure the Accuracy of a Model</h2>
+        
+        <p>Accuracy measures the proportion of total predictions that the model got correct.</p>
+
+        <div class="formula-box">
+            <div class="formula-text">
+                Accuracy = Correct Predictions / Total Predictions
+            </div>
+        </div>
+
+        <p><strong>Using confusion matrix terms:</strong></p>
+
+        <div class="formula-box">
+            <div class="formula-text">
+                Accuracy = (True Positives + True Negatives) / (TP + TN + FP + FN)
+            </div>
+        </div>
+        
+        <h2><span class="section-number">5.</span> Summary of Key Terms</h2>
+        <ul>
+            <li><strong>True Positive (TP):</strong> Correctly predicted positive cases</li>
+            <li><strong>False Positive (FP):</strong> Incorrectly predicted positive cases (actually negative)</li>
+            <li><strong>True Negative (TN):</strong> Correctly predicted negative cases</li>
+            <li><strong>False Negative (FN):</strong> Incorrectly predicted negative cases (actually positive)</li>
+        </ul>
+    </div>
+    
+    <script>
+        // DOM elements
+        const tpInput = document.getElementById('tp');
+        const fpInput = document.getElementById('fp');
+        const tnInput = document.getElementById('tn');
+        const fnInput = document.getElementById('fn');
+        const confusionMatrixDiv = document.getElementById('confusionMatrix');
+        const metricsResultsDiv = document.getElementById('metricsResults');
+        const harmonicVisualDiv = document.getElementById('harmonicVisual');
+        
+        // Chart.js instance
+        let metricsChart;
+        
+        // Initialize the dashboard
+        function initDashboard() {
+            updateConfusionMatrix();
+            updateMetrics();
+            updateHarmonicVisual();
+            createChart();
+            
+            // Add event listeners to inputs
+            [tpInput, fpInput, tnInput, fnInput].forEach(input => {
+                input.addEventListener('input', updateDashboard);
+            });
+        }
+        
+        // Update all dashboard components
+        function updateDashboard() {
+            updateConfusionMatrix();
+            updateMetrics();
+            updateHarmonicVisual();
+            updateChart();
+        }
+        
+        // Update confusion matrix visualization
+        function updateConfusionMatrix() {
+            const tp = parseInt(tpInput.value);
+            const fp = parseInt(fpInput.value);
+            const tn = parseInt(tnInput.value);
+            const fn = parseInt(fnInput.value);
+            
+            confusionMatrixDiv.innerHTML = `
+                <div class="matrix-cell" style="background-color: #f0f0f0;">
+                    <div class="matrix-label">Actual/Predicted</div>
+                    <div class="matrix-value">-</div>
+                </div>
+                <div class="matrix-cell" style="background-color: #e8f5e9;">
+                    <div class="matrix-label">Predicted Positive</div>
+                    <div class="matrix-value">P</div>
+                </div>
+                <div class="matrix-cell" style="background-color: #ffebee;">
+                    <div class="matrix-label">Predicted Negative</div>
+                    <div class="matrix-value">N</div>
+                </div>
+                
+                <div class="matrix-cell" style="background-color: #e8f5e9;">
+                    <div class="matrix-label">Actual Positive</div>
+                    <div class="matrix-value">P</div>
+                </div>
+                <div class="matrix-cell" style="background-color: #a5d6a7; color: #1b5e20;">
+                    <div class="matrix-label">True Positive</div>
+                    <div class="matrix-value">${tp}</div>
+                </div>
+                <div class="matrix-cell" style="background-color: #ef9a9a; color: #b71c1c;">
+                    <div class="matrix-label">False Negative</div>
+                    <div class="matrix-value">${fn}</div>
+                </div>
+                
+                <div class="matrix-cell" style="background-color: #ffebee;">
+                    <div class="matrix-label">Actual Negative</div>
+                    <div class="matrix-value">N</div>
+                </div>
+                <div class="matrix-cell" style="background-color: #ef9a9a; color: #b71c1c;">
+                    <div class="matrix-label">False Positive</div>
+                    <div class="matrix-value">${fp}</div>
+                </div>
+                <div class="matrix-cell" style="background-color: #a5d6a7; color: #1b5e20;">
+                    <div class="matrix-label">True Negative</div>
+                    <div class="matrix-value">${tn}</div>
+                </div>
+            `;
+        }
+        
+        // Calculate and update performance metrics
+        function updateMetrics() {
+            const tp = parseInt(tpInput.value);
+            const fp = parseInt(fpInput.value);
+            const tn = parseInt(tnInput.value);
+            const fn = parseInt(fnInput.value);
+            
+            // Calculate metrics
+            const precision = tp + fp === 0 ? 0 : tp / (tp + fp);
+            const recall = tp + fn === 0 ? 0 : tp / (tp + fn);
+            const f1 = precision + recall === 0 ? 0 : 2 * (precision * recall) / (precision + recall);
+            const accuracy = (tp + tn + fp + fn) === 0 ? 0 : (tp + tn) / (tp + tn + fp + fn);
+            const total = tp + fp + tn + fn;
+            
+            // Update metrics results
+            metricsResultsDiv.innerHTML = `
+                <div class="metric-card">
+                    <div class="metric-name">Accuracy</div>
+                    <div class="metric-value">${(accuracy * 100).toFixed(2)}%</div>
+                    <div>${tp + tn} / ${total}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-name">Precision</div>
+                    <div class="metric-value">${(precision * 100).toFixed(2)}%</div>
+                    <div>${tp} / ${tp + fp}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-name">Recall</div>
+                    <div class="metric-value">${(recall * 100).toFixed(2)}%</div>
+                    <div>${tp} / ${tp + fn}</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-name">F1 Score</div>
+                    <div class="metric-value">${(f1 * 100).toFixed(2)}%</div>
+                    <div>Harmonic Mean</div>
+                </div>
+            `;
+            
+            // Return metrics for chart
+            return { accuracy, precision, recall, f1 };
+        }
+        
+        // Update harmonic mean visualization
+        function updateHarmonicVisual() {
+            const tp = parseInt(tpInput.value);
+            const fp = parseInt(fpInput.value);
+            const fn = parseInt(fnInput.value);
+            
+            const precision = tp + fp === 0 ? 0 : tp / (tp + fp);
+            const recall = tp + fn === 0 ? 0 : tp / (tp + fn);
+            const f1 = precision + recall === 0 ? 0 : 2 * (precision * recall) / (precision + recall);
+            
+            harmonicVisualDiv.innerHTML = `
+                <div style="text-align: center; width: 100%;">
+                    <p><strong>F1 Score as Harmonic Mean of Precision and Recall</strong></p>
+                    <div style="display: flex; justify-content: center; align-items: center; margin: 20px 0;">
+                        <div class="harmonic-bar" style="background-color: #3498db; width: ${precision * 300}px;">
+                            Precision: ${(precision * 100).toFixed(1)}%
+                        </div>
+                        <div style="margin: 0 10px; font-size: 1.5em;">+</div>
+                        <div class="harmonic-bar" style="background-color: #2ecc71; width: ${recall * 300}px;">
+                            Recall: ${(recall * 100).toFixed(1)}%
+                        </div>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <div class="harmonic-bar" style="background-color: #9b59b6; width: ${f1 * 300}px; margin: 0 auto;">
+                            F1 Score: ${(f1 * 100).toFixed(1)}%
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px; font-size: 0.9em; color: #666;">
+                        F1 = 2 × (${precision.toFixed(2)} × ${recall.toFixed(2)}) / (${precision.toFixed(2)} + ${recall.toFixed(2)}) = ${f1.toFixed(2)}
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Create Chart.js chart
+        function createChart() {
+            const ctx = document.getElementById('metricsChart').getContext('2d');
+            const metrics = updateMetrics();
+            
+            metricsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Accuracy', 'Precision', 'Recall', 'F1 Score'],
+                    datasets: [{
+                        label: 'Performance Metrics',
+                        data: [
+                            metrics.accuracy * 100,
+                            metrics.precision * 100,
+                            metrics.recall * 100,
+                            metrics.f1 * 100
+                        ],
+                        backgroundColor: [
+                            'rgba(52, 152, 219, 0.7)',
+                            'rgba(46, 204, 113, 0.7)',
+                            'rgba(155, 89, 182, 0.7)',
+                            'rgba(241, 196, 15, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgb(52, 152, 219)',
+                            'rgb(46, 204, 113)',
+                            'rgb(155, 89, 182)',
+                            'rgb(241, 196, 15)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Percentage (%)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Update the chart with new data
+        function updateChart() {
+            const metrics = updateMetrics();
+            
+            metricsChart.data.datasets[0].data = [
+                metrics.accuracy * 100,
+                metrics.precision * 100,
+                metrics.recall * 100,
+                metrics.f1 * 100
+            ];
+            
+            metricsChart.update();
+        }
+        
+        // Initialize the dashboard when page loads
+        document.addEventListener('DOMContentLoaded', initDashboard);
+        
+        // Ensure MathJax renders properly
+        if (window.MathJax) {
+            window.MathJax.typeset();
+        }
+    </script>
+</body>
+</html>
