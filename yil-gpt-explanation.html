@@ -51,7 +51,7 @@
         }
 
         .section {
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             animation: fadeIn 0.6s ease-in;
         }
 
@@ -327,34 +327,134 @@
 
             <div class="section">
                 <div class="section-title">
-                    <span class="icon">✨</span>
-                    <span>Key Benefits</span>
+                    <span class="icon">💻</span>
+                    <span>Technical Implementation</span>
                 </div>
+
+                <div class="pipeline">
+                    <h3>🔧 Ingestion Pipeline (ingestion.py)</h3>
+                    <p style="margin-bottom: 15px; color: #666;"><em>Implements the Offline Knowledge Builder</em></p>
+                    
+                    <div class="info-box">
+                        <ul>
+                            <li><strong>PDF Processing:</strong> Reads PDFs using PyMuPDF + pdfplumber for robust text extraction</li>
+                            <li><strong>Text Processing:</strong> Cleans and chunks text into manageable segments</li>
+                            <li><strong>Metadata Extraction:</strong> Extracts tags including equipment IDs, doc_type, and version information</li>
+                            <li><strong>Deduplication:</strong> Computes hashes for each chunk and avoids storing duplicate chunks</li>
+                            <li><strong>Embeddings:</strong> Generates vector embeddings using sentence-transformers</li>
+                            <li><strong>Storage:</strong> Stores vectors in Chroma vector database with rich metadata</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="pipeline">
+                    <h3>🔍 Online RAG System</h3>
+                    <p style="margin-bottom: 15px; color: #666;"><em>Implements the Online Query Handler</em></p>
+                    
+                    <div class="info-box">
+                        <p style="font-weight: 600; color: #764ba2; margin-bottom: 10px;">retrieval.py</p>
+                        <ul>
+                            <li>Embeds user queries into the same vector space</li>
+                            <li>Retrieves top-K most relevant chunks from Chroma DB</li>
+                            <li>Supports optional metadata filters for targeted search</li>
+                        </ul>
+
+                        <p style="font-weight: 600; color: #764ba2; margin-bottom: 10px; margin-top: 15px;">llm_client.py</p>
+                        <ul>
+                            <li>Builds context-aware prompts from retrieved chunks</li>
+                            <li>Manages LLM API calls with proper formatting</li>
+                            <li>Handles response parsing and error management</li>
+                        </ul>
+
+                        <p style="font-weight: 600; color: #764ba2; margin-bottom: 10px; margin-top: 15px;">api.py</p>
+                        <ul>
+                            <li>FastAPI-based REST API endpoints</li>
+                            <li>Orchestrates the complete query-response flow</li>
+                            <li>Returns answers with source metadata for full traceability</li>
+                        </ul>
+                    </div>
+                </div>
+
                 <div class="feature-grid">
                     <div class="feature-card">
-                        <h3>🎯 Accuracy</h3>
-                        <p>Answers grounded in verified internal documents only</p>
+                        <h3>📚 Libraries Used</h3>
+                        <p><strong>PyMuPDF & pdfplumber:</strong> PDF text extraction</p>
+                        <p><strong>sentence-transformers:</strong> Embedding generation</p>
+                        <p><strong>Chroma:</strong> Vector database</p>
+                        <p><strong>FastAPI:</strong> REST API framework</p>
                     </div>
                     <div class="feature-card">
-                        <h3>🔍 Traceability</h3>
-                        <p>Full source attribution for every response</p>
+                        <h3>🎯 Key Features</h3>
+                        <p>✓ Hash-based deduplication</p>
+                        <p>✓ Metadata-driven filtering</p>
+                        <p>✓ Source traceability</p>
+                        <p>✓ Scalable architecture</p>
                     </div>
                     <div class="feature-card">
-                        <h3>⚡ Speed</h3>
-                        <p>Instant access to critical information</p>
+                        <h3>🚀 Future Enhancements</h3>
+                        <p>• Metrics/evaluation module (Recall@K, latency)</p>
+                        <p>• CLI query interface</p>
+                        <p>• Django integration option</p>
+                        <p>• Advanced monitoring dashboard</p>
                     </div>
-                    <div class="feature-card">
-                        <h3>🛡️ Safety</h3>
-                        <p>Designed for critical OT environments</p>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">
+                    <span class="icon">✨</span>
+                    <span>Popular Questions</span>
+                </div>
+
+                <div class="qa-section">
+                    <h2>How do you handle duplicacy in the RAG pipeline?</h2>
+                    <ol>
+                        <li>We use a combination of semantic similarity checks and metadata filtering to ensure that duplicate documents do not clutter the retrieval process. This helps maintain the quality and relevance of the information provided by YIL-GPT.</li>
+                        <li>Store metadata like document_id, version, timestamp</li>
+                        <li>Apply metadata filters (e.g., version = latest) to avoid pulling older duplicates</li>
+                    </ol>
+                </div>
+
+                <div class="qa-section">
+                    <h2>How do you measure accuracy and performance of the RAG system?</h2>
+                    <div class="qa-subsection">
+                        <p style="font-weight: 600; color: #764ba2; margin-bottom: 10px;">A. Retrieval Quality Metrics</p>
+                        <ol>
+                            <li><strong>Precision@K:</strong> Measures the proportion of relevant documents in the top K retrieved results</li>
+                            <li><strong>Recall@K:</strong> Assesses how many of the relevant documents are retrieved in the top K results</li>
+                            <li><strong>Mean Reciprocal Rank (MRR):</strong> Evaluates the rank position of the first relevant document</li>
+                        </ol>
                     </div>
-                    <div class="feature-card">
-                        <h3>🚫 No Hallucinations</h3>
-                        <p>RAG architecture prevents false information</p>
+
+                    <div class="qa-subsection">
+                        <p style="font-weight: 600; color: #764ba2; margin-bottom: 10px;">B. LLM Generation Quality Metrics</p>
+                        <ol>
+                            <li><strong>ROUGE Scores:</strong> Compare generated answers to reference answers based on overlapping n-grams, word sequences, and word pairs</li>
+                            <li><strong>BLEU Scores:</strong> Measure the quality of generated text by comparing it to reference texts</li>
+                            <li><strong>Human Evaluation:</strong> Involve domain experts to assess accuracy, relevance, and usefulness of generated answers</li>
+                        </ol>
                     </div>
-                    <div class="feature-card">
-                        <h3>📚 Proprietary Knowledge</h3>
-                        <p>Leverages internal expertise and documentation</p>
+
+                    <div class="qa-subsection">
+                        <p style="font-weight: 600; color: #764ba2; margin-bottom: 10px;">C. System Performance Metrics</p>
+                        <ol>
+                            <li><strong>Latency:</strong> Measure the time taken from query submission to answer generation</li>
+                            <li><strong>Throughput:</strong> Assess the number of queries the system can handle per unit time</li>
+                            <li><strong>Error Rate:</strong> Track the frequency of system errors or failures during query processing</li>
+                            <li><strong>Token Efficiency:</strong> Number of tokens used in the final prompt (reducing cost & time)</li>
+                        </ol>
                     </div>
+                </div>
+
+                <div class="qa-section">
+                    <h2>How do you handle tagging documents in the project?</h2>
+                    <ol>
+                        <li>We implement a multi-faceted tagging strategy that combines automated techniques with human oversight to ensure accurate and meaningful tags for our documents</li>
+                        <li><strong>Automated Tagging:</strong> Utilize Natural Language Processing (NLP) algorithms to analyze document content and automatically generate relevant tags based on keywords, topics, and entities</li>
+                        <li><strong>Human Review:</strong> Engage subject matter experts to review and refine automatically generated tags, ensuring they accurately reflect the document's content and context</li>
+                        <li><strong>Version Tagging:</strong> Version tags → Rev 1.2</li>
+                        <li><strong>Semantic Tagging:</strong> Apply semantic analysis to understand document meaning and relationships</li>
+                    </ol>
                 </div>
             </div>
         </div>
