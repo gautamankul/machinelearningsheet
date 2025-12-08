@@ -1,23 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Naive Bayes Classifier</title>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <!-- MathJax Configuration -->
-    <script>
-        window.MathJax = {
-            tex: {
-                inlineMath: [['$', '$'], ['\\(', '\\)']],
-                displayMath: [['$$', '$$'], ['\\[', '\\]']]
-            }
-        };
-    </script>
-
-    <!-- MathJax Script -->
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
         * {
@@ -103,8 +90,7 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
-        th,
-        td {
+        th, td {
             padding: 12px;
             text-align: center;
             border: 1px solid #ddd;
@@ -169,25 +155,21 @@
         }
     </style>
 </head>
-
 <body>
     <div class="container">
         <h1>Naive Bayes Classifier</h1>
 
         <h2>Introduction</h2>
         <p>
-            The <strong>Naive Bayes classifier</strong> is a probabilistic machine learning algorithm based on Bayes'
-            theorem.
-            It is widely used for classification tasks such as spam detection, sentiment analysis, and document
-            categorization.
-            The "naive" assumption is that all features are independent of each other given the class label, which
-            simplifies
+            The <strong>Naive Bayes classifier</strong> is a probabilistic machine learning algorithm based on Bayes' theorem. 
+            It is widely used for classification tasks such as spam detection, sentiment analysis, and document categorization. 
+            The "naive" assumption is that all features are independent of each other given the class label, which simplifies 
             the computation significantly.
         </p>
 
         <h2>Bayes' Theorem</h2>
         <p>The foundation of the Naive Bayes classifier is Bayes' theorem, which relates conditional probabilities:</p>
-
+        
         <div class="formula-box">
             \[ P(C|X) = \frac{P(X|C) \cdot P(C)}{P(X)} \]
         </div>
@@ -202,14 +184,12 @@
 
         <h2>Naive Bayes Assumption</h2>
         <p>
-            The "naive" assumption states that all features are conditionally independent given the class.
+            The "naive" assumption states that all features are conditionally independent given the class. 
             For features \(X_1, X_2, ..., X_n\), this means:
         </p>
 
         <div class="formula-box">
-            $$
-            P(C|X) = \frac{P(X|C) \cdot P(C)}{P(X)}
-            $$
+            \[ P(X_1, X_2, ..., X_n|C) = P(X_1|C) \cdot P(X_2|C) \cdot ... \cdot P(X_n|C) \]
         </div>
 
         <p>This simplifies the classification problem to:</p>
@@ -226,7 +206,7 @@
         </div>
 
         <h2>Types of Naive Bayes Classifiers</h2>
-
+        
         <h3>1. Gaussian Naive Bayes</h3>
         <p>Used when features follow a normal (Gaussian) distribution:</p>
         <div class="formula-box">
@@ -248,7 +228,7 @@
 
         <div class="example-box">
             <h3>📊 Example: Email Spam Classification</h3>
-
+            
             <p><strong>Dataset:</strong> We have emails labeled as Spam or Not Spam with word occurrences.</p>
 
             <table>
@@ -301,7 +281,7 @@
                 <p>P("Free"|Spam) = 2/2 = 1.0</p>
                 <p>P("Money"|Spam) = 2/2 = 1.0</p>
                 <p>P("Meeting"|Spam) = 0/2 = 0.0</p>
-
+                
                 <p><strong>For Not Spam:</strong></p>
                 <p>P("Free"|Not Spam) = 0/2 = 0.0</p>
                 <p>P("Money"|Not Spam) = 0/2 = 0.0</p>
@@ -311,13 +291,13 @@
             <div class="step">
                 <h3>Step 3: Classify New Email</h3>
                 <p><strong>New Email:</strong> Contains words "Free" and "Money"</p>
-
+                
                 <p>P(Spam | "Free", "Money") ∝ P(Spam) × P("Free"|Spam) × P("Money"|Spam)</p>
                 <p>= 0.5 × 1.0 × 1.0 = 0.5</p>
-
+                
                 <p>P(Not Spam | "Free", "Money") ∝ P(Not Spam) × P("Free"|Not Spam) × P("Money"|Not Spam)</p>
                 <p>= 0.5 × 0.0 × 0.0 = 0.0</p>
-
+                
                 <p class="highlight"><strong>Prediction: SPAM</strong> (since 0.5 > 0.0)</p>
             </div>
         </div>
@@ -332,96 +312,26 @@
 
         <h2>Disadvantages</h2>
         <ul>
-            <li><strong>Independence Assumption:</strong> The naive assumption of feature independence is often violated
-                in real-world data</li>
-            <li><strong>Zero Probability Problem:</strong> If a feature value doesn't appear in training data, it gets
-                zero probability (solved by smoothing)</li>
+            <li><strong>Independence Assumption:</strong> The naive assumption of feature independence is often violated in real-world data</li>
+            <li><strong>Zero Probability Problem:</strong> If a feature value doesn't appear in training data, it gets zero probability (solved by smoothing)</li>
             <li><strong>Not Ideal for Regression:</strong> Primarily designed for classification tasks</li>
             <li><strong>Sensitivity to Input Data:</strong> Performance can degrade with correlated features</li>
         </ul>
 
         <div class="note">
-            <strong>💡 Note:</strong> Despite its simplicity and the "naive" independence assumption,
-            Naive Bayes often performs surprisingly well in practice, especially for text classification
+            <strong>💡 Note:</strong> Despite its simplicity and the "naive" independence assumption, 
+            Naive Bayes often performs surprisingly well in practice, especially for text classification 
             tasks like spam filtering and sentiment analysis.
         </div>
 
         <h2>Applications</h2>
         <ul>
             <li>📧 <strong>Spam Filtering:</strong> Classifying emails as spam or legitimate</li>
-            <li>😊 <strong>Sentiment Analysis:</strong> Determining if text expresses positive or negative sentiment
-            </li>
+            <li>😊 <strong>Sentiment Analysis:</strong> Determining if text expresses positive or negative sentiment</li>
             <li>📄 <strong>Document Classification:</strong> Categorizing documents by topic</li>
             <li>🏥 <strong>Medical Diagnosis:</strong> Predicting diseases based on symptoms</li>
             <li>🎯 <strong>Recommendation Systems:</strong> Suggesting products based on user preferences</li>
         </ul>
-
-        <h2>Feature Scaling Requirements</h2>
-
-        <div class="note" style="background: #e8f5e9; border-left-color: #4caf50;">
-            <strong>✅ Answer: NO</strong> - Feature scaling is <strong>NOT required</strong> for Naive Bayes!
-        </div>
-
-        <h3>What is Feature Scaling?</h3>
-        <p>
-            Feature scaling is the process of transforming numerical features so they are on a similar scale.
-            This ensures that all features contribute equally to the model's predictions.
-        </p>
-
-        <p><strong>Example of Scaling:</strong></p>
-        <table>
-            <tr>
-                <th>Feature</th>
-                <th>Before Scaling</th>
-                <th>After Scaling</th>
-            </tr>
-            <tr>
-                <td>Height</td>
-                <td>150–200 cm</td>
-                <td>0–1 (normalized)</td>
-            </tr>
-            <tr>
-                <td>Weight</td>
-                <td>50–120 kg</td>
-                <td>0–1 (normalized)</td>
-            </tr>
-        </table>
-
-        <h3>Why Do We Scale Features?</h3>
-        <p>
-            Some machine learning algorithms depend heavily on distances or magnitudes. Without scaling,
-            features with larger numeric ranges can dominate the learning process and bias the model.
-        </p>
-
-        <p><strong>Algorithms that REQUIRE scaling:</strong></p>
-        <ul>
-            <li>K-Nearest Neighbors (KNN)</li>
-            <li>Support Vector Machines (SVM)</li>
-            <li>Logistic Regression</li>
-            <li>Linear Regression</li>
-            <li>Neural Networks</li>
-            <li>K-Means Clustering</li>
-            <li>Gradient Boosting / Decision Trees (sometimes optional)</li>
-        </ul>
-
-        <div class="note" style="background: #ffebee; border-left-color: #f44336;">
-            <strong>⚠️ Important:</strong> These algorithms can get biased if one feature has a much larger
-            numeric range than others, leading to poor model performance.
-        </div>
-
-        <h3>Why Naive Bayes Doesn't Need Scaling</h3>
-        <div class="note" style="background: #e3f2fd; border-left-color: #2196f3;">
-            <strong>🔑 Key Insight:</strong> Naive Bayes uses <strong>probability distributions</strong>,
-            not distances or magnitudes. Each feature is evaluated independently based on its probability
-            given the class, so the scale of the features doesn't affect the classification decision.
-        </div>
-
-        <p>
-            Since Naive Bayes calculates probabilities for each feature separately and then multiplies them,
-            the relative scale between features doesn't matter. The algorithm only cares about the probability
-            distributions of individual features, not their absolute values or distances.
-        </p>
     </div>
 </body>
-
 </html>
