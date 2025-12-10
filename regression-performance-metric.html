@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regression Performance Metrics</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 15px;
+        }
+        
+        h2 {
+            color: #764ba2;
+            margin-top: 35px;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-left: 5px solid #764ba2;
+            padding-left: 15px;
+        }
+        
+        h3 {
+            color: #555;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .types-list {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .types-list ol {
+            margin-left: 25px;
+        }
+        
+        .types-list li {
+            margin: 8px 0;
+            color: #333;
+        }
+        
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .note strong {
+            color: #856404;
+        }
+        
+        .formula {
+            background: #e3f2fd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-size: 1.2em;
+            text-align: center;
+            border: 2px solid #2196F3;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .formula-inline {
+            background: #e3f2fd;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+        
+        .metric-box {
+            background: #f5f5f5;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .metric-box h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        ul {
+            margin-left: 30px;
+            margin-top: 10px;
+        }
+        
+        ul li {
+            margin: 8px 0;
+            color: #444;
+        }
+        
+        .highlight {
+            background: #d4edda;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #28a745;
+        }
+        
+        .warning {
+            background: #f8d7da;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .comparison {
+            background: #e7f3ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #2196F3;
+        }
+        
+        .comparison h3 {
+            color: #1976d2;
+            margin-top: 0;
+        }
+        
+        sup {
+            font-size: 0.7em;
+            vertical-align: super;
+        }
+        
+        sub {
+            font-size: 0.7em;
+            vertical-align: sub;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Regression Performance Metrics</h1>
+        
+        <div class="types-list">
+            <strong>Regression Performance Metrics are basically 4 Types:</strong>
+            <ol>
+                <li><strong>Error based</strong> (MAE, MSE, RMSE, RMSLE)</li>
+                <li><strong>Goodness-of-fit</strong> (R², Adjusted R², Explained Variance)</li>
+                <li><strong>Percentage-based</strong> (MAPE, SMAPE)</li>
+                <li><strong>Advanced</strong> (Huber Loss, Quantile Loss, RMLSE)</li>
+            </ol>
+        </div>
+        
+        <div class="note">
+            <strong>Note:</strong><br>
+            R² → performance metric only<br>
+            Adjusted R² → performance metric only<br>
+            MAPE → performance metric only
+        </div>
+        
+        <h2>1. Error Based Metrics</h2>
+        
+        <div class="metric-box">
+            <h3>a. MAE — Mean Absolute Error</h3>
+            <div class="formula">
+                MAE = (1/n) × Σ |y - ŷ|
+            </div>
+            <ul>
+                <li>Easy to interpret</li>
+                <li>Not sensitive to outliers</li>
+            </ul>
+        </div>
+        
+        <div class="metric-box">
+            <h3>b. MSE — Mean Squared Error</h3>
+            <div class="formula">
+                MSE = (1/n) × Σ(y - ŷ)²
+            </div>
+            <ul>
+                <li>Penalizes large errors heavily</li>
+                <li>Good for models where big mistakes matter</li>
+            </ul>
+        </div>
+        
+        <div class="metric-box">
+            <h3>c. RMSE — Root Mean Squared Error</h3>
+            <div class="formula">
+                RMSE = √MSE
+            </div>
+            <ul>
+                <li>Same units as target variable</li>
+                <li>Most commonly used in ML</li>
+            </ul>
+        </div>
+        
+        <div class="metric-box">
+            <h3>d. RMSLE — Root Mean Squared Log Error</h3>
+            <p><strong>Used when:</strong></p>
+            <ul>
+                <li>Target values vary widely</li>
+                <li>You want to penalize under-prediction more</li>
+            </ul>
+        </div>
+        
+        <h2>2. Goodness-of-fit Metrics</h2>
+        
+        <div class="metric-box">
+            <h3>a. R² — Coefficient of Determination</h3>
+            <p>R², also called the coefficient of determination, measures how well your regression model explains the variability of the dependent variable.</p>
+            
+            <div class="highlight">
+                <strong>What R² tells you:</strong> What percentage of the variation in the output (Y) is explained by all the input features (X₁, X₂, …, Xₙ).
+            </div>
+            
+            <p><strong>Formal Definition:</strong></p>
+            <div class="formula">
+                R² = 1 - (SS<sub>res</sub> / SS<sub>tot</sub>)
+            </div>
+            
+            <p><strong>Where:</strong></p>
+            <div class="formula">
+                SS<sub>res</sub> = Σ(y - ŷ)²  [Sum of squared residuals]
+            </div>
+            <div class="formula">
+                SS<sub>tot</sub> = Σ(y - ȳ)²  [Total variation in y]
+            </div>
+            
+            <div class="note">
+                <strong>Note:</strong> SS<sub>tot</sub> > SS<sub>res</sub>
+            </div>
+            
+            <p><strong>How R² Works:</strong></p>
+            <ul>
+                <li>R² ranges from 0 to 1</li>
+                <li><strong>0</strong> → Model explains none of the variation in Y</li>
+                <li><strong>1</strong> → Model explains all of the variation in Y (perfect model)</li>
+            </ul>
+            
+            <div class="warning">
+                <strong>⚠️ Weakness of R²:</strong><br>
+                R² always increases when you add more features — even if the new feature is useless!
+                
+                <p style="margin-top: 15px;"><strong>Why This Is a Problem in Multiple Linear Regression:</strong></p>
+                <ul>
+                    <li>You may add many features</li>
+                    <li>R² will keep increasing</li>
+                    <li>But the model may become worse (overfitting)</li>
+                    <li>Coefficients become unstable</li>
+                    <li>Multicollinearity increases</li>
+                    <li><strong>So R² misleads you</strong></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="metric-box">
+            <h3>b. Adjusted R²</h3>
+            <p><strong>It will penalize the non-correlated attributes</strong></p>
+            <ul>
+                <li>Penalizes unnecessary features</li>
+                <li>Better for multiple linear regression</li>
+            </ul>
+            
+            <p><strong>Formula:</strong></p>
+            <div class="formula">
+                Adjusted R² = 1 - [(1 - R²) × (n - 1) / (n - p - 1)]
+            </div>
+            
+            <p><strong>Where:</strong></p>
+            <ul>
+                <li><strong>R²</strong> = regular R-squared</li>
+                <li><strong>n</strong> = number of observations (rows) / Total sample size</li>
+                <li><strong>p</strong> = number of independent variables (features) / no. of predictors</li>
+            </ul>
+        </div>
+        
+        <div class="metric-box">
+            <h3>c. Explained Variance Score</h3>
+            <p>Similar to R² but slightly different mathematically</p>
+        </div>
+        
+        <h2>💡 Loss/Cost Function</h2>
+        
+        <div class="highlight">
+            <p><strong>How wrong the model's predictions are during training.</strong></p>
+            <p>It tells the algorithm how far the predicted values ŷ are from the actual values y.</p>
+            <p>The model then adjusts coefficients to minimize this loss.</p>
+        </div>
+        
+        <p><strong>So… Is a Loss Function a Performance Metric?</strong></p>
+        <p>During training → <strong>YES</strong>, Loss function is used to optimize the model.</p>
+        
+        <h3>Most Common Loss Functions in Regression</h3>
+        <ol>
+            <li><strong>MSE</strong> — Mean Squared Error</li>
+            <li><strong>MAE</strong> — Mean Absolute Error</li>
+        </ol>
+        
+        <div class="note">
+            <strong>Note:</strong> A loss function measures how wrong the model is during training and is minimized to learn the best parameters. Metrics like MSE and MAE can be both loss functions and performance metrics, but metrics like R² or Adjusted R² are only evaluation metrics and cannot be used as loss functions.
+        </div>
+        
+        <div class="comparison">
+            <h3>🔍 What is difference between R² and Adjusted-R²?</h3>
+            <p><strong>R²</strong> always increases when you add predictors, even if they are useless.</p>
+            <p><strong>Adjusted R²</strong> corrects this by penalizing unnecessary features, so it only increases when a new predictor genuinely improves the model.</p>
+        </div>
+    </div>
+</body>
+</html>

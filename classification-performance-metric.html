@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classification Performance Metrics</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #f5576c;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            border-bottom: 3px solid #f5576c;
+            padding-bottom: 15px;
+        }
+        
+        h2 {
+            color: #f093fb;
+            margin-top: 35px;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-left: 5px solid #f093fb;
+            padding-left: 15px;
+        }
+        
+        h3 {
+            color: #555;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        h4 {
+            color: #666;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .intro {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-left: 4px solid #f5576c;
+        }
+        
+        .types-list {
+            background: #fff0f5;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-left: 4px solid #f093fb;
+        }
+        
+        .types-list ol {
+            margin-left: 25px;
+            margin-top: 10px;
+        }
+        
+        .types-list li {
+            margin: 8px 0;
+            color: #333;
+        }
+        
+        .formula {
+            background: #e3f2fd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-size: 1.2em;
+            text-align: center;
+            border: 2px solid #2196F3;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .metric-box {
+            background: #f5f5f5;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            border-left: 5px solid #f5576c;
+        }
+        
+        .metric-box h3,
+        .metric-box h4 {
+            color: #f5576c;
+            margin-bottom: 10px;
+        }
+        
+        ul {
+            margin-left: 30px;
+            margin-top: 10px;
+        }
+        
+        ul li {
+            margin: 8px 0;
+            color: #444;
+        }
+        
+        .highlight {
+            background: #d4edda;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #28a745;
+        }
+        
+        .info-box {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #2196F3;
+        }
+        
+        .code-box {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+        }
+        
+        .code-box .comment {
+            color: #6a9955;
+        }
+        
+        .code-box .keyword {
+            color: #569cd6;
+        }
+        
+        .code-box .string {
+            color: #ce9178;
+        }
+        
+        .code-box .function {
+            color: #dcdcaa;
+        }
+        
+        .output-box {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            border-left: 4px solid #666;
+        }
+        
+        .comparison-table {
+            background: #fff9e6;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #ffc107;
+        }
+        
+        .comparison-table h3 {
+            color: #f57c00;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        
+        .comparison-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #ffc107;
+        }
+        
+        .comparison-item h4 {
+            color: #f57c00;
+            margin-top: 0;
+        }
+        
+        .key-point {
+            background: #fff3cd;
+            padding: 12px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 3px solid #ffc107;
+            font-weight: 500;
+        }
+        
+        .confusion-matrix {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px auto;
+            max-width: 400px;
+            border: 2px solid #f093fb;
+        }
+        
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: 100px 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .matrix-cell {
+            padding: 15px;
+            text-align: center;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        .matrix-header {
+            background: #f093fb;
+            color: white;
+        }
+        
+        .matrix-label {
+            background: #f5576c;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .matrix-tp {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .matrix-fp {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .matrix-fn {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .matrix-tn {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Classification Performance Metrics</h1>
+        
+        <div class="intro">
+            <p>Classification metrics include accuracy, precision, recall, F1-score, specificity, ROC-AUC, PR-AUC, log loss, and multi-class averages. They fall into five groups: basic accuracy, class-wise metrics, threshold-based metrics, error-based metrics, and multi-class metrics.</p>
+        </div>
+        
+        <div class="types-list">
+            <strong>Classification Metrics are organized into 4 main categories:</strong>
+            <ol>
+                <li><strong>Basic</strong> (Confusion Matrix, Accuracy)</li>
+                <li><strong>Class-wise</strong> (Precision, Recall, F1, Specificity)</li>
+                <li><strong>Threshold-based</strong> (ROC, AUC, PR Curve, AP)</li>
+                <li><strong>Error-based</strong> (Log Loss, Brier Score)</li>
+            </ol>
+        </div>
+        
+        <h2>1. Basic Metrics</h2>
+        
+        <div class="metric-box">
+            <h3>a. Confusion Matrix</h3>
+            <p>A confusion matrix shows how many predictions a classification model got right and wrong by categorizing them into <strong>true positives</strong>, <strong>false positives</strong>, <strong>true negatives</strong>, and <strong>false negatives</strong>.</p>
+            
+            <p style="margin-top: 15px;">A confusion matrix is a tabular representation used to evaluate the performance of a classification model by comparing actual labels with predicted labels.</p>
+            
+            <div class="confusion-matrix">
+                <h4 style="text-align: center; color: #f093fb; margin-bottom: 15px;">Confusion Matrix Structure</h4>
+                <div class="matrix-grid">
+                    <div class="matrix-cell"></div>
+                    <div class="matrix-cell matrix-header">Predicted<br>Positive</div>
+                    <div class="matrix-cell matrix-header">Predicted<br>Negative</div>
+                    
+                    <div class="matrix-cell matrix-label">Actual<br>Positive</div>
+                    <div class="matrix-cell matrix-tp">TP<br>True Positive</div>
+                    <div class="matrix-cell matrix-fn">FN<br>False Negative</div>
+                    
+                    <div class="matrix-cell matrix-label">Actual<br>Negative</div>
+                    <div class="matrix-cell matrix-fp">FP<br>False Positive</div>
+                    <div class="matrix-cell matrix-tn">TN<br>True Negative</div>
+                </div>
+            </div>
+            
+            <div class="info-box">
+                <strong>Where are Precision/Recall Matrix Considered?</strong><br>
+                Precision and recall are first computed from the confusion matrix, and F1-score combines them using a harmonic mean, penalizing imbalance between the two.
+            </div>
+        </div>
+        
+        <div class="metric-box">
+            <h3>b. Accuracy</h3>
+            <p>Accuracy measures the proportion of total predictions that the model got correct.</p>
+            
+            <div class="formula">
+                Accuracy = (TP + TN) / (TP + TN + FP + FN)
+            </div>
+            
+            <p><strong>Where:</strong></p>
+            <ul>
+                <li><strong>TP</strong> = True Positive</li>
+                <li><strong>TN</strong> = True Negative</li>
+                <li><strong>FP</strong> = False Positive</li>
+                <li><strong>FN</strong> = False Negative</li>
+            </ul>
+            
+            <div class="key-point">
+                ⚠️ These are crucial when one class is rare (fraud, disease detection).
+            </div>
+        </div>
+        
+        <h2>2. Class-wise Metrics (for imbalanced data)</h2>
+        
+        <div class="metric-box">
+            <h3>a. F1 Score</h3>
+            <p>F1 score is a performance metric used in machine learning to evaluate how well a classification model performs on a dataset, <strong>especially when the classes are imbalanced</strong>.</p>
+            
+            <div class="highlight">
+                F1-score is the <strong>harmonic mean</strong> of precision and recall.
+            </div>
+            
+            <div class="formula">
+                F1 = 2 × (Precision × Recall) / (Precision + Recall)
+            </div>
+            
+            <h4>a.I Precision</h4>
+            <p>It is a measure of the <strong>accuracy of the positive predictions</strong>.</p>
+            <p>It refers to the proportion of correct positive predictions (True Positives) out of all the positive predictions made by the model (True Positives + False Positives).</p>
+            
+            <div class="formula">
+                Precision = TP / (TP + FP)
+            </div>
+            
+            <h4>a.II Recall</h4>
+            <p>It is the ratio of True Positives to the total actual positives (True Positives + False Negatives).</p>
+            <p>Measures the proportion of actual positive instances that were correctly identified by the model.</p>
+            
+            <div class="formula">
+                Recall = TP / (TP + FN)
+            </div>
+        </div>
+        
+        <h2>3. Threshold-Based Metrics</h2>
+        
+        <div class="info-box">
+            <strong>These evaluate how well the model ranks probabilities.</strong>
+        </div>
+        
+        <div class="metric-box">
+            <h3>a. ROC Curve</h3>
+            <p>The <strong>ROC Curve (Receiver Operating Characteristic Curve)</strong> is a graphical tool used to evaluate the performance of a binary classification model.</p>
+            
+            <p style="margin-top: 15px;">A ROC curve is a performance visualization tool used to evaluate binary classification models. It shows how well a model can distinguish between two classes (positive vs. negative) at various threshold settings.</p>
+            
+            <div class="highlight">
+                <strong>A ROC curve plots:</strong>
+                <ul>
+                    <li><strong>True Positive Rate (TPR)</strong> on the Y-axis</li>
+                    <li><strong>False Positive Rate (FPR)</strong> on the X-axis</li>
+                    <li>For different classification thresholds (0 → 1)</li>
+                </ul>
+            </div>
+            
+            <h4>True Positive Rate (TPR) / Recall:</h4>
+            <div class="formula">
+                TPR = TP / (TP + FN)
+            </div>
+            
+            <h4>False Positive Rate (FPR):</h4>
+            <div class="formula">
+                FPR = FP / (FP + TN)
+            </div>
+        </div>
+        
+        <div class="metric-box">
+            <h3>b. AUC (Area Under the Curve)</h3>
+            <p><strong>AUC</strong> stands for <strong>Area Under the ROC Curve</strong>.</p>
+            
+            <p>It measures how well a classification model can separate the positive and negative classes.</p>
+            
+            <div class="highlight">
+                <strong>In simple terms:</strong> AUC tells me the probability that the model will rank a randomly chosen positive example higher than a randomly chosen negative one.
+            </div>
+            
+            <ul>
+                <li><strong>AUC = 0.5</strong> → Model is no better than random guessing</li>
+                <li><strong>AUC closer to 1.0</strong> → Excellent separability</li>
+            </ul>
+            
+            <div class="code-box">
+<span class="keyword">from</span> sklearn.metrics <span class="keyword">import</span> roc_curve, auc
+<span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt
+
+<span class="comment"># Sample true labels (binary classification)</span>
+y_true = [<span class="string">0</span>, <span class="string">0</span>, <span class="string">1</span>, <span class="string">1</span>, <span class="string">0</span>, <span class="string">1</span>, <span class="string">0</span>, <span class="string">1</span>, <span class="string">1</span>, <span class="string">0</span>]
+
+<span class="comment"># Sample predicted probabilities from a model</span>
+y_pred_prob = [<span class="string">0.10</span>, <span class="string">0.35</span>, <span class="string">0.80</span>, <span class="string">0.65</span>, <span class="string">0.20</span>, <span class="string">0.90</span>, <span class="string">0.40</span>, <span class="string">0.75</span>, <span class="string">0.60</span>, <span class="string">0.30</span>]
+
+<span class="comment"># Compute ROC curve</span>
+fpr, tpr, thresholds = <span class="function">roc_curve</span>(y_true, y_pred_prob)
+
+<span class="comment"># Compute AUC</span>
+auc_score = <span class="function">auc</span>(fpr, tpr)
+
+<span class="comment"># Plot ROC curve</span>
+plt.<span class="function">plot</span>(fpr, tpr, label=<span class="string">f"AUC = {auc_score:.2f}"</span>)
+plt.<span class="function">plot</span>([<span class="string">0</span>, <span class="string">1</span>], [<span class="string">0</span>, <span class="string">1</span>], <span class="string">'--'</span>, color=<span class="string">'gray'</span>) <span class="comment"># baseline</span>
+plt.<span class="function">xlabel</span>(<span class="string">"False Positive Rate"</span>)
+plt.<span class="function">ylabel</span>(<span class="string">"True Positive Rate"</span>)
+plt.<span class="function">title</span>(<span class="string">"ROC Curve Example"</span>)
+plt.<span class="function">legend</span>()
+plt.<span class="function">show</span>()
+            </div>
+        </div>
+        
+        <h2>4. Error-based Metrics</h2>
+        
+        <div class="metric-box">
+            <h3>a. Log Loss</h3>
+            <p><strong>Log Loss</strong> measures how far the predicted probabilities are from the actual labels.</p>
+            
+            <div class="highlight">
+                It penalizes confident wrong predictions heavily, making it a strict and informative classification metric.
+            </div>
+            
+            <p><strong>Formula:</strong></p>
+            <div class="formula">
+                LogLoss = -(1/N) × Σ[y<sub>i</sub> · log(p<sub>i</sub>) + (1 - y<sub>i</sub>) · log(1 - p<sub>i</sub>)]
+            </div>
+            
+            <p><strong>Where:</strong></p>
+            <ul>
+                <li><strong>y<sub>i</sub></strong> = actual label (0 or 1)</li>
+                <li><strong>p<sub>i</sub></strong> = predicted probability of class 1</li>
+                <li><strong>N</strong> = number of samples</li>
+            </ul>
+            
+            <div class="info-box">
+                <strong>Key Points:</strong>
+                <ul>
+                    <li>It doesn't just check whether the prediction is right or wrong — <strong>it checks how confident the model was</strong></li>
+                    <li>A model that is correct but overconfident gets punished</li>
+                    <li>A model that is wrong and confident gets punished heavily</li>
+                    <li>The model's confidence in the wrong answer increases the penalty</li>
+                </ul>
+            </div>
+            
+            <div class="code-box">
+<span class="keyword">import</span> numpy <span class="keyword">as</span> np
+<span class="keyword">from</span> sklearn.metrics <span class="keyword">import</span> log_loss
+
+<span class="comment"># Actual labels</span>
+y_true = np.<span class="function">array</span>([<span class="string">1</span>, <span class="string">0</span>, <span class="string">1</span>, <span class="string">1</span>, <span class="string">0</span>])
+
+<span class="comment"># Predicted probabilities from a model</span>
+y_pred_prob = np.<span class="function">array</span>([<span class="string">0.9</span>, <span class="string">0.2</span>, <span class="string">0.6</span>, <span class="string">0.4</span>, <span class="string">0.1</span>])
+
+<span class="comment"># Calculate log loss using sklearn</span>
+loss = <span class="function">log_loss</span>(y_true, y_pred_prob)
+<span class="function">print</span>(<span class="string">"Log Loss:"</span>, loss)
+
+<span class="comment"># Manual calculation to understand how it works</span>
+manual_loss = -np.<span class="function">mean</span>(
+    y_true * np.<span class="function">log</span>(y_pred_prob) +
+    (<span class="string">1</span> - y_true) * np.<span class="function">log</span>(<span class="string">1</span> - y_pred_prob)
+)
+<span class="function">print</span>(<span class="string">"Manual Log Loss:"</span>, manual_loss)
+            </div>
+            
+            <div class="output-box">
+Log Loss: 0.3721961876540016
+Manual Log Loss: 0.3721961876540016
+            </div>
+        </div>
+        
+        <div class="comparison-table">
+            <h3>🔍 Difference between ROC and AUC</h3>
+            
+            <div class="comparison-grid">
+                <div class="comparison-item">
+                    <h4>ROC (Receiver Operating Characteristic Curve)</h4>
+                    <ul>
+                        <li>ROC is a <strong>curve</strong></li>
+                        <li>It plots TPR (Recall) vs FPR at different probability thresholds</li>
+                        <li>It shows how the model's performance changes as you move the threshold from 0 to 1</li>
+                        <li>It is <strong>visual</strong></li>
+                    </ul>
+                    <div class="key-point" style="margin-top: 15px;">
+                        <strong>In one line:</strong> ROC tells you how the model behaves across thresholds.
+                    </div>
+                </div>
+                
+                <div class="comparison-item">
+                    <h4>AUC (Area Under the Curve)</h4>
+                    <ul>
+                        <li>AUC is a <strong>number</strong></li>
+                        <li>It measures the area under the ROC curve</li>
+                        <li>It summarizes the ROC curve into a single value between 0 and 1</li>
+                        <li>Higher AUC = better class separability</li>
+                    </ul>
+                    <div class="key-point" style="margin-top: 15px;">
+                        <strong>In one line:</strong> AUC tells you how good the ROC curve is overall.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
