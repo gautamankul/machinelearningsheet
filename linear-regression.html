@@ -1,427 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Naive Bayes Classifier</title>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <!-- MathJax Configuration -->
+    <title>Linear Regression - Interview Preparation</title>
+
+    <!-- MathJax CONFIG must come BEFORE loading the script -->
     <script>
         window.MathJax = {
             tex: {
-                inlineMath: [['$', '$'], ['\\(', '\\)']],
-                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+                inlineMath: [['\\(', '\\)'], ['$', '$']],
+                displayMath: [['\\[', '\\]'], ['$$', '$$']]
             }
         };
     </script>
 
-    <!-- MathJax Script -->
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <!-- Only ONE MathJax script -->
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.8;
-            color: #2c3e50;
+            font-family: 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            color: #333;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 40px 20px;
+            padding: 20px;
         }
-
         .container {
             max-width: 900px;
             margin: 0 auto;
             background: white;
-            padding: 50px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
-
-        h1 {
-            color: #667eea;
-            font-size: 2.5em;
-            margin-bottom: 30px;
-            text-align: center;
-            border-bottom: 4px solid #667eea;
-            padding-bottom: 20px;
-        }
-
-        h2 {
-            color: #764ba2;
-            font-size: 1.8em;
-            margin-top: 40px;
-            margin-bottom: 20px;
-            padding-left: 15px;
-            border-left: 5px solid #764ba2;
-        }
-
-        h3 {
-            color: #667eea;
-            font-size: 1.3em;
-            margin-top: 25px;
-            margin-bottom: 15px;
-        }
-
-        p {
-            margin-bottom: 15px;
-            text-align: justify;
-        }
-
+        h1 { color: #667eea; text-align: center; margin-bottom: 30px; }
+        h2 { margin-top: 35px; color: #764ba2; }
         .formula-box {
             background: #f8f9fa;
+            padding: 20px;
             border-left: 4px solid #667eea;
-            padding: 20px;
-            margin: 25px 0;
-            border-radius: 8px;
-            overflow-x: auto;
-        }
-
-        .example-box {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
-            padding: 20px;
-            margin: 25px 0;
-            border-radius: 8px;
-        }
-
-        .example-box h3 {
-            color: #856404;
-            margin-top: 0;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
             margin: 20px 0;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        th,
-        td {
-            padding: 12px;
-            text-align: center;
-            border: 1px solid #ddd;
-        }
-
-        th {
-            background: #667eea;
-            color: white;
-            font-weight: 600;
-        }
-
-        tr:nth-child(even) {
-            background: #f8f9fa;
-        }
-
-        ul {
-            margin: 15px 0 15px 30px;
-        }
-
-        li {
-            margin-bottom: 10px;
-        }
-
-        .highlight {
-            background: #ffffcc;
-            padding: 2px 5px;
-            border-radius: 3px;
-        }
-
-        strong {
-            color: #764ba2;
-        }
-
-        .note {
-            background: #e3f2fd;
-            border-left: 4px solid #2196f3;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 5px;
-        }
-
-        .step {
-            background: #f1f8e9;
-            padding: 15px;
-            margin: 15px 0;
-            border-radius: 8px;
-            border-left: 4px solid #8bc34a;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 30px 20px;
-            }
-
-            h1 {
-                font-size: 2em;
-            }
-
-            h2 {
-                font-size: 1.5em;
-            }
         }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <h1>Naive Bayes Classifier</h1>
+        <h1>📊 Linear Regression - Interview Preparation</h1>
 
-        <h2>Introduction</h2>
-        <p>
-            The <strong>Naive Bayes classifier</strong> is a probabilistic machine learning algorithm based on Bayes'
-            theorem.
-            It is widely used for classification tasks such as spam detection, sentiment analysis, and document
-            categorization.
-            The "naive" assumption is that all features are independent of each other given the class label, which
-            simplifies
-            the computation significantly.
-        </p>
-
-        <h2>Bayes' Theorem</h2>
-        <p>The foundation of the Naive Bayes classifier is Bayes' theorem, which relates conditional probabilities:</p>
+        <h2>Example Formula</h2>
 
         <div class="formula-box">
-            \[ P(C|X) = \frac{P(X|C) \cdot P(C)}{P(X)} \]
+            \[
+            y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \cdots + \beta_p x_p
+            \]
         </div>
-
-        <p>Where:</p>
-        <ul>
-            <li><strong>P(C|X)</strong> = Posterior probability (probability of class C given features X)</li>
-            <li><strong>P(X|C)</strong> = Likelihood (probability of features X given class C)</li>
-            <li><strong>P(C)</strong> = Prior probability (probability of class C)</li>
-            <li><strong>P(X)</strong> = Evidence (probability of features X)</li>
-        </ul>
-
-        <h2>Naive Bayes Assumption</h2>
-        <p>
-            The "naive" assumption states that all features are conditionally independent given the class.
-            For features \(X_1, X_2, ..., X_n\), this means:
-        </p>
 
         <div class="formula-box">
-            $$
-            P(C|X) = \frac{P(X|C) \cdot P(C)}{P(X)}
-            $$
+            \[
+            RSS = \sum_{i=1}^{n} (y_i - \hat{y}_i)^2
+            \]
         </div>
-
-        <p>This simplifies the classification problem to:</p>
 
         <div class="formula-box">
-            \[ P(C|X_1, X_2, ..., X_n) \propto P(C) \prod_{i=1}^{n} P(X_i|C) \]
+            \[
+            J(m,c)=\frac{1}{2m} \sum (y - \hat{y})^2
+            \]
         </div>
-
-        <h2>Classification Rule</h2>
-        <p>To classify a new instance, we choose the class with the highest posterior probability:</p>
 
         <div class="formula-box">
-            \[ \hat{C} = \arg\max_{C} P(C) \prod_{i=1}^{n} P(X_i|C) \]
+            \[
+            m = m - \alpha \frac{\partial J}{\partial m}
+            \]
+            \[
+            c = c - \alpha \frac{\partial J}{\partial c}
+            \]
         </div>
 
-        <h2>Types of Naive Bayes Classifiers</h2>
-
-        <h3>1. Gaussian Naive Bayes</h3>
-        <p>Used when features follow a normal (Gaussian) distribution:</p>
         <div class="formula-box">
-            \[ P(X_i|C) = \frac{1}{\sqrt{2\pi\sigma_C^2}} \exp\left(-\frac{(X_i - \mu_C)^2}{2\sigma_C^2}\right) \]
+            \[
+            Cost = RSS + \lambda \sum_{j=1}^{p} |\beta_j|
+            \]
         </div>
 
-        <h3>2. Multinomial Naive Bayes</h3>
-        <p>Used for discrete count data (e.g., word counts in text classification):</p>
-        <div class="formula-box">
-            \[ P(X_i|C) = \frac{\text{count}(X_i, C) + \alpha}{\text{count}(C) + \alpha n} \]
-        </div>
-        <p>Where α is a smoothing parameter (typically α = 1 for Laplace smoothing).</p>
-
-        <h3>3. Bernoulli Naive Bayes</h3>
-        <p>Used for binary/boolean features:</p>
-        <div class="formula-box">
-            \[ P(X_i|C) = P(i|C) \cdot X_i + (1 - P(i|C)) \cdot (1 - X_i) \]
-        </div>
-
-        <div class="example-box">
-            <h3>📊 Example: Email Spam Classification</h3>
-
-            <p><strong>Dataset:</strong> We have emails labeled as Spam or Not Spam with word occurrences.</p>
-
-            <table>
-                <tr>
-                    <th>Email</th>
-                    <th>"Free"</th>
-                    <th>"Money"</th>
-                    <th>"Meeting"</th>
-                    <th>Class</th>
-                </tr>
-                <tr>
-                    <td>1</td>
-                    <td>Yes</td>
-                    <td>Yes</td>
-                    <td>No</td>
-                    <td>Spam</td>
-                </tr>
-                <tr>
-                    <td>2</td>
-                    <td>No</td>
-                    <td>No</td>
-                    <td>Yes</td>
-                    <td>Not Spam</td>
-                </tr>
-                <tr>
-                    <td>3</td>
-                    <td>Yes</td>
-                    <td>Yes</td>
-                    <td>No</td>
-                    <td>Spam</td>
-                </tr>
-                <tr>
-                    <td>4</td>
-                    <td>No</td>
-                    <td>No</td>
-                    <td>Yes</td>
-                    <td>Not Spam</td>
-                </tr>
-            </table>
-
-            <div class="step">
-                <h3>Step 1: Calculate Prior Probabilities</h3>
-                <p>P(Spam) = 2/4 = 0.5</p>
-                <p>P(Not Spam) = 2/4 = 0.5</p>
-            </div>
-
-            <div class="step">
-                <h3>Step 2: Calculate Likelihoods</h3>
-                <p><strong>For Spam:</strong></p>
-                <p>P("Free"|Spam) = 2/2 = 1.0</p>
-                <p>P("Money"|Spam) = 2/2 = 1.0</p>
-                <p>P("Meeting"|Spam) = 0/2 = 0.0</p>
-
-                <p><strong>For Not Spam:</strong></p>
-                <p>P("Free"|Not Spam) = 0/2 = 0.0</p>
-                <p>P("Money"|Not Spam) = 0/2 = 0.0</p>
-                <p>P("Meeting"|Not Spam) = 2/2 = 1.0</p>
-            </div>
-
-            <div class="step">
-                <h3>Step 3: Classify New Email</h3>
-                <p><strong>New Email:</strong> Contains words "Free" and "Money"</p>
-
-                <p>P(Spam | "Free", "Money") ∝ P(Spam) × P("Free"|Spam) × P("Money"|Spam)</p>
-                <p>= 0.5 × 1.0 × 1.0 = 0.5</p>
-
-                <p>P(Not Spam | "Free", "Money") ∝ P(Not Spam) × P("Free"|Not Spam) × P("Money"|Not Spam)</p>
-                <p>= 0.5 × 0.0 × 0.0 = 0.0</p>
-
-                <p class="highlight"><strong>Prediction: SPAM</strong> (since 0.5 > 0.0)</p>
-            </div>
-        </div>
-
-        <h2>Advantages</h2>
-        <ul>
-            <li><strong>Simple and Fast:</strong> Easy to implement and computationally efficient</li>
-            <li><strong>Works Well with High Dimensions:</strong> Performs well even with many features</li>
-            <li><strong>Requires Small Training Data:</strong> Can work effectively with limited data</li>
-            <li><strong>Handles Both Continuous and Discrete Data:</strong> Flexible for different data types</li>
-        </ul>
-
-        <h2>Disadvantages</h2>
-        <ul>
-            <li><strong>Independence Assumption:</strong> The naive assumption of feature independence is often violated
-                in real-world data</li>
-            <li><strong>Zero Probability Problem:</strong> If a feature value doesn't appear in training data, it gets
-                zero probability (solved by smoothing)</li>
-            <li><strong>Not Ideal for Regression:</strong> Primarily designed for classification tasks</li>
-            <li><strong>Sensitivity to Input Data:</strong> Performance can degrade with correlated features</li>
-        </ul>
-
-        <div class="note">
-            <strong>💡 Note:</strong> Despite its simplicity and the "naive" independence assumption,
-            Naive Bayes often performs surprisingly well in practice, especially for text classification
-            tasks like spam filtering and sentiment analysis.
-        </div>
-
-        <h2>Applications</h2>
-        <ul>
-            <li>📧 <strong>Spam Filtering:</strong> Classifying emails as spam or legitimate</li>
-            <li>😊 <strong>Sentiment Analysis:</strong> Determining if text expresses positive or negative sentiment
-            </li>
-            <li>📄 <strong>Document Classification:</strong> Categorizing documents by topic</li>
-            <li>🏥 <strong>Medical Diagnosis:</strong> Predicting diseases based on symptoms</li>
-            <li>🎯 <strong>Recommendation Systems:</strong> Suggesting products based on user preferences</li>
-        </ul>
-
-        <h2>Feature Scaling Requirements</h2>
-
-        <div class="note" style="background: #e8f5e9; border-left-color: #4caf50;">
-            <strong>✅ Answer: NO</strong> - Feature scaling is <strong>NOT required</strong> for Naive Bayes!
-        </div>
-
-        <h3>What is Feature Scaling?</h3>
-        <p>
-            Feature scaling is the process of transforming numerical features so they are on a similar scale.
-            This ensures that all features contribute equally to the model's predictions.
-        </p>
-
-        <p><strong>Example of Scaling:</strong></p>
-        <table>
-            <tr>
-                <th>Feature</th>
-                <th>Before Scaling</th>
-                <th>After Scaling</th>
-            </tr>
-            <tr>
-                <td>Height</td>
-                <td>150–200 cm</td>
-                <td>0–1 (normalized)</td>
-            </tr>
-            <tr>
-                <td>Weight</td>
-                <td>50–120 kg</td>
-                <td>0–1 (normalized)</td>
-            </tr>
-        </table>
-
-        <h3>Why Do We Scale Features?</h3>
-        <p>
-            Some machine learning algorithms depend heavily on distances or magnitudes. Without scaling,
-            features with larger numeric ranges can dominate the learning process and bias the model.
-        </p>
-
-        <p><strong>Algorithms that REQUIRE scaling:</strong></p>
-        <ul>
-            <li>K-Nearest Neighbors (KNN)</li>
-            <li>Support Vector Machines (SVM)</li>
-            <li>Logistic Regression</li>
-            <li>Linear Regression</li>
-            <li>Neural Networks</li>
-            <li>K-Means Clustering</li>
-            <li>Gradient Boosting / Decision Trees (sometimes optional)</li>
-        </ul>
-
-        <div class="note" style="background: #ffebee; border-left-color: #f44336;">
-            <strong>⚠️ Important:</strong> These algorithms can get biased if one feature has a much larger
-            numeric range than others, leading to poor model performance.
-        </div>
-
-        <h3>Why Naive Bayes Doesn't Need Scaling</h3>
-        <div class="note" style="background: #e3f2fd; border-left-color: #2196f3;">
-            <strong>🔑 Key Insight:</strong> Naive Bayes uses <strong>probability distributions</strong>,
-            not distances or magnitudes. Each feature is evaluated independently based on its probability
-            given the class, so the scale of the features doesn't affect the classification decision.
-        </div>
-
-        <p>
-            Since Naive Bayes calculates probabilities for each feature separately and then multiplies them,
-            the relative scale between features doesn't matter. The algorithm only cares about the probability
-            distributions of individual features, not their absolute values or distances.
-        </p>
     </div>
 </body>
-
 </html>
