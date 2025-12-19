@@ -3,335 +3,796 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Naive Bayes Classifier</title>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <title>Naive Bayes - Complete Guide</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.8;
-            color: #2c3e50;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 40px 20px;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            color: #333;
         }
-
+        
         .container {
-            max-width: 900px;
+            max-width: 1200px;
             margin: 0 auto;
             background: white;
-            padding: 50px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
         }
-
+        
         h1 {
-            color: #667eea;
-            font-size: 2.5em;
-            margin-bottom: 30px;
+            color: #2c3e50;
             text-align: center;
-            border-bottom: 4px solid #667eea;
-            padding-bottom: 20px;
+            border-bottom: 3px solid #8e44ad;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
         }
-
+        
         h2 {
-            color: #764ba2;
-            font-size: 1.8em;
-            margin-top: 40px;
-            margin-bottom: 20px;
+            color: #34495e;
+            border-left: 4px solid #8e44ad;
             padding-left: 15px;
-            border-left: 5px solid #764ba2;
+            margin-top: 30px;
         }
-
+        
         h3 {
-            color: #667eea;
-            font-size: 1.3em;
+            color: #7d3c98;
             margin-top: 25px;
-            margin-bottom: 15px;
         }
-
-        p {
-            margin-bottom: 15px;
-            text-align: justify;
+        
+        .formula {
+            background: #f4f1f8;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #8e44ad;
+            font-family: 'Times New Roman', serif;
+            font-size: 16px;
         }
-
-        .formula-box {
-            background: #f8f9fa;
-            border-left: 4px solid #667eea;
+        
+        .formula-title {
+            font-weight: bold;
+            color: #7d3c98;
+            margin-bottom: 10px;
+        }
+        
+        pre {
+            background: #2c3e50;
+            color: #ecf0f1;
             padding: 20px;
-            margin: 25px 0;
             border-radius: 8px;
             overflow-x: auto;
+            margin: 15px 0;
         }
-
-        .example-box {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
+        
+        code {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        
+        .advantages {
+            background: #e8f5e8;
             padding: 20px;
-            margin: 25px 0;
+            border-radius: 8px;
+            border-left: 4px solid #27ae60;
+        }
+        
+        .disadvantages {
+            background: #fdeaea;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .highlight {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #ffc107;
+            margin: 10px 0;
+        }
+        
+        .output {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+        
+        .image-container {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
             border-radius: 8px;
         }
-
-        .example-box h3 {
-            color: #856404;
-            margin-top: 0;
+        
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
-
+        
+        .image-caption {
+            margin-top: 10px;
+            font-style: italic;
+            color: #666;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        
         table {
             width: 100%;
             border-collapse: collapse;
-            margin: 20px 0;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin: 15px 0;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-
+        
         th, td {
             padding: 12px;
             text-align: center;
             border: 1px solid #ddd;
         }
-
+        
         th {
-            background: #667eea;
+            background: #8e44ad;
             color: white;
-            font-weight: 600;
+            font-weight: bold;
         }
-
+        
         tr:nth-child(even) {
-            background: #f8f9fa;
+            background: #f9f9f9;
         }
-
-        ul {
-            margin: 15px 0 15px 30px;
-        }
-
-        li {
-            margin-bottom: 10px;
-        }
-
-        .highlight {
-            background: #ffffcc;
-            padding: 2px 5px;
-            border-radius: 3px;
-        }
-
-        strong {
-            color: #764ba2;
-        }
-
-        .note {
-            background: #e3f2fd;
-            border-left: 4px solid #2196f3;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 5px;
-        }
-
-        .step {
-            background: #f1f8e9;
-            padding: 15px;
-            margin: 15px 0;
+        
+        .example-box {
+            background: #e8f4fd;
+            padding: 20px;
             border-radius: 8px;
-            border-left: 4px solid #8bc34a;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
         }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 30px 20px;
-            }
-
-            h1 {
-                font-size: 2em;
-            }
-
-            h2 {
-                font-size: 1.5em;
-            }
+        
+        .naive-assumption {
+            background: #fef9e7;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #f39c12;
+        }
+        
+        ol, ul {
+            padding-left: 25px;
+        }
+        
+        li {
+            margin-bottom: 8px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Naive Bayes Classifier</h1>
-
-        <h2>Introduction</h2>
-        <p>
-            The <strong>Naive Bayes classifier</strong> is a probabilistic machine learning algorithm based on Bayes' theorem. 
-            It is widely used for classification tasks such as spam detection, sentiment analysis, and document categorization. 
-            The "naive" assumption is that all features are independent of each other given the class label, which simplifies 
-            the computation significantly.
-        </p>
-
-        <h2>Bayes' Theorem</h2>
-        <p>The foundation of the Naive Bayes classifier is Bayes' theorem, which relates conditional probabilities:</p>
+        <h1>Naive Bayes - Complete Guide</h1>
         
-        <div class="formula-box">
-            \[ P(C|X) = \frac{P(X|C) \cdot P(C)}{P(X)} \]
-        </div>
-
-        <p>Where:</p>
-        <ul>
-            <li><strong>P(C|X)</strong> = Posterior probability (probability of class C given features X)</li>
-            <li><strong>P(X|C)</strong> = Likelihood (probability of features X given class C)</li>
-            <li><strong>P(C)</strong> = Prior probability (probability of class C)</li>
-            <li><strong>P(X)</strong> = Evidence (probability of features X)</li>
-        </ul>
-
-        <h2>Naive Bayes Assumption</h2>
-        <p>
-            The "naive" assumption states that all features are conditionally independent given the class. 
-            For features \(X_1, X_2, ..., X_n\), this means:
-        </p>
-
-        <div class="formula-box">
-            \[ P(X_1, X_2, ..., X_n|C) = P(X_1|C) \cdot P(X_2|C) \cdot ... \cdot P(X_n|C) \]
-        </div>
-
-        <p>This simplifies the classification problem to:</p>
-
-        <div class="formula-box">
-            \[ P(C|X_1, X_2, ..., X_n) \propto P(C) \prod_{i=1}^{n} P(X_i|C) \]
-        </div>
-
-        <h2>Classification Rule</h2>
-        <p>To classify a new instance, we choose the class with the highest posterior probability:</p>
-
-        <div class="formula-box">
-            \[ \hat{C} = \arg\max_{C} P(C) \prod_{i=1}^{n} P(X_i|C) \]
-        </div>
-
-        <h2>Types of Naive Bayes Classifiers</h2>
-        
-        <h3>1. Gaussian Naive Bayes</h3>
-        <p>Used when features follow a normal (Gaussian) distribution:</p>
-        <div class="formula-box">
-            \[ P(X_i|C) = \frac{1}{\sqrt{2\pi\sigma_C^2}} \exp\left(-\frac{(X_i - \mu_C)^2}{2\sigma_C^2}\right) \]
-        </div>
-
-        <h3>2. Multinomial Naive Bayes</h3>
-        <p>Used for discrete count data (e.g., word counts in text classification):</p>
-        <div class="formula-box">
-            \[ P(X_i|C) = \frac{\text{count}(X_i, C) + \alpha}{\text{count}(C) + \alpha n} \]
-        </div>
-        <p>Where α is a smoothing parameter (typically α = 1 for Laplace smoothing).</p>
-
-        <h3>3. Bernoulli Naive Bayes</h3>
-        <p>Used for binary/boolean features:</p>
-        <div class="formula-box">
-            \[ P(X_i|C) = P(i|C) \cdot X_i + (1 - P(i|C)) \cdot (1 - X_i) \]
-        </div>
-
-        <div class="example-box">
-            <h3>📊 Example: Email Spam Classification</h3>
+        <div class="section">
+            <h2>What is Naive Bayes?</h2>
+            <p>Naive Bayes is a probabilistic machine learning algorithm based on <strong>Bayes' Theorem</strong>. It's called 'naive' because it assumes that all features are independent of each other, which is rarely true in real-world data but works surprisingly well in practice.</p>
             
-            <p><strong>Dataset:</strong> We have emails labeled as Spam or Not Spam with word occurrences.</p>
+            <p>The algorithm calculates the probability of each class given the input features and predicts the class with the highest probability. It's widely used for text classification tasks like spam detection and sentiment analysis because it's simple, fast, and works well even with small datasets.</p>
 
-            <table>
-                <tr>
-                    <th>Email</th>
-                    <th>"Free"</th>
-                    <th>"Money"</th>
-                    <th>"Meeting"</th>
-                    <th>Class</th>
-                </tr>
-                <tr>
-                    <td>1</td>
-                    <td>Yes</td>
-                    <td>Yes</td>
-                    <td>No</td>
-                    <td>Spam</td>
-                </tr>
-                <tr>
-                    <td>2</td>
-                    <td>No</td>
-                    <td>No</td>
-                    <td>Yes</td>
-                    <td>Not Spam</td>
-                </tr>
-                <tr>
-                    <td>3</td>
-                    <td>Yes</td>
-                    <td>Yes</td>
-                    <td>No</td>
-                    <td>Spam</td>
-                </tr>
-                <tr>
-                    <td>4</td>
-                    <td>No</td>
-                    <td>No</td>
-                    <td>Yes</td>
-                    <td>Not Spam</td>
-                </tr>
-            </table>
-
-            <div class="step">
-                <h3>Step 1: Calculate Prior Probabilities</h3>
-                <p>P(Spam) = 2/4 = 0.5</p>
-                <p>P(Not Spam) = 2/4 = 0.5</p>
-            </div>
-
-            <div class="step">
-                <h3>Step 2: Calculate Likelihoods</h3>
-                <p><strong>For Spam:</strong></p>
-                <p>P("Free"|Spam) = 2/2 = 1.0</p>
-                <p>P("Money"|Spam) = 2/2 = 1.0</p>
-                <p>P("Meeting"|Spam) = 0/2 = 0.0</p>
-                
-                <p><strong>For Not Spam:</strong></p>
-                <p>P("Free"|Not Spam) = 0/2 = 0.0</p>
-                <p>P("Money"|Not Spam) = 0/2 = 0.0</p>
-                <p>P("Meeting"|Not Spam) = 2/2 = 1.0</p>
-            </div>
-
-            <div class="step">
-                <h3>Step 3: Classify New Email</h3>
-                <p><strong>New Email:</strong> Contains words "Free" and "Money"</p>
-                
-                <p>P(Spam | "Free", "Money") ∝ P(Spam) × P("Free"|Spam) × P("Money"|Spam)</p>
-                <p>= 0.5 × 1.0 × 1.0 = 0.5</p>
-                
-                <p>P(Not Spam | "Free", "Money") ∝ P(Not Spam) × P("Free"|Not Spam) × P("Money"|Not Spam)</p>
-                <p>= 0.5 × 0.0 × 0.0 = 0.0</p>
-                
-                <p class="highlight"><strong>Prediction: SPAM</strong> (since 0.5 > 0.0)</p>
+            <div class="image-container">
+                ![Naive Bayes algorithm visualization showing Bayes theorem formula with conditional probabilities, mathematical diagram with prior and posterior probabilities, clean educational style](1766138112.jpg?ar=landscape)
+                <div class="image-caption">Bayes' Theorem: The mathematical foundation of Naive Bayes classification</div>
             </div>
         </div>
 
-        <h2>Advantages</h2>
-        <ul>
-            <li><strong>Simple and Fast:</strong> Easy to implement and computationally efficient</li>
-            <li><strong>Works Well with High Dimensions:</strong> Performs well even with many features</li>
-            <li><strong>Requires Small Training Data:</strong> Can work effectively with limited data</li>
-            <li><strong>Handles Both Continuous and Discrete Data:</strong> Flexible for different data types</li>
-        </ul>
+        <div class="section">
+            <h2>Mathematical Foundation - Bayes' Theorem</h2>
+            
+            <div class="formula">
+                <div class="formula-title">Bayes' Theorem:</div>
+                <strong>P(A|B) = P(B|A) × P(A) / P(B)</strong>
+            </div>
 
-        <h2>Disadvantages</h2>
-        <ul>
-            <li><strong>Independence Assumption:</strong> The naive assumption of feature independence is often violated in real-world data</li>
-            <li><strong>Zero Probability Problem:</strong> If a feature value doesn't appear in training data, it gets zero probability (solved by smoothing)</li>
-            <li><strong>Not Ideal for Regression:</strong> Primarily designed for classification tasks</li>
-            <li><strong>Sensitivity to Input Data:</strong> Performance can degrade with correlated features</li>
-        </ul>
+            <p>In the context of classification, we want to find the probability of a class <strong>y</strong> given a set of features <strong>x = (x₁, x₂, ..., xₙ)</strong>. So, we can replace <strong>A</strong> with <strong>y</strong> and <strong>B</strong> with <strong>x</strong>:</p>
 
-        <div class="note">
-            <strong>💡 Note:</strong> Despite its simplicity and the "naive" independence assumption, 
-            Naive Bayes often performs surprisingly well in practice, especially for text classification 
-            tasks like spam filtering and sentiment analysis.
+            <div class="formula">
+                <div class="formula-title">Classification Formula:</div>
+                <strong>P(y|x₁, x₂, ..., xₙ) = P(x₁, x₂, ..., xₙ|y) × P(y) / P(x₁, x₂, ..., xₙ)</strong><br><br>
+                Where:<br>
+                • <strong>P(y|x₁, x₂, ..., xₙ)</strong> is the posterior probability of class y given the features<br>
+                • <strong>P(x₁, x₂, ..., xₙ|y)</strong> is the likelihood of observing the features given class y<br>
+                • <strong>P(y)</strong> is the prior probability of class y<br>
+                • <strong>P(x₁, x₂, ..., xₙ)</strong> is the evidence (normalizing constant)
+            </div>
         </div>
 
-        <h2>Applications</h2>
-        <ul>
-            <li>📧 <strong>Spam Filtering:</strong> Classifying emails as spam or legitimate</li>
-            <li>😊 <strong>Sentiment Analysis:</strong> Determining if text expresses positive or negative sentiment</li>
-            <li>📄 <strong>Document Classification:</strong> Categorizing documents by topic</li>
-            <li>🏥 <strong>Medical Diagnosis:</strong> Predicting diseases based on symptoms</li>
-            <li>🎯 <strong>Recommendation Systems:</strong> Suggesting products based on user preferences</li>
-        </ul>
+        <div class="section">
+            <h2>The "Naive" Assumption</h2>
+            <div class="naive-assumption">
+                <h3>Conditional Independence Assumption</h3>
+                <p>To make this calculation tractable, the "naive" assumption is introduced: it assumes that all features (xᵢ) are conditionally independent of each other given the class y.</p>
+                
+                <div class="formula">
+                    <div class="formula-title">Independence Assumption:</div>
+                    <strong>P(x₁, x₂, ..., xₙ|y) = P(x₁|y) × P(x₂|y) × ... × P(xₙ|y)</strong>
+                </div>
+            </div>
+
+            <p>Substituting this into the Bayes' Theorem equation, we get the Naive Bayes formula:</p>
+
+            <div class="formula">
+                <div class="formula-title">Naive Bayes Formula:</div>
+                <strong>P(y|x₁, x₂, ..., xₙ) = P(y) × ∏ᵢ₌₁ⁿ P(xᵢ|y) / P(x₁, x₂, ..., xₙ)</strong>
+            </div>
+
+            <p>Since P(x₁, x₂, ..., xₙ) is constant for a given input, we are primarily interested in finding the class y that maximizes the numerator:</p>
+
+            <div class="formula">
+                <div class="formula-title">Prediction Formula:</div>
+                <strong>y_predict = argmax_y [P(y) × ∏ᵢ₌₁ⁿ P(xᵢ|y)]</strong>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Mathematical Example (Interview Favorite)</h2>
+            
+            <div class="example-box">
+                <h3>Email Spam Classification</h3>
+                <p>Suppose we classify email as Spam or Not Spam. Given:</p>
+                
+                <strong>Prior:</strong><br>
+                P(Spam) = 0.4<br>
+                P(Not Spam) = 0.6<br><br>
+                
+                <strong>Likelihoods:</strong><br>
+                P("offer"|Spam) = 0.2<br>
+                P("offer"|Not Spam) = 0.05<br><br>
+                
+                <strong>Posterior:</strong><br>
+                P(Spam|"offer") = 0.2 × 0.4 = 0.08<br>
+                P(Not Spam|"offer") = 0.05 × 0.6 = 0.03<br><br>
+                
+                <strong>Prediction Result → Spam</strong> (higher probability)
+            </div>
+
+            <div class="image-container">
+                ![Spam email classification using Naive Bayes, showing email text analysis with word probability calculations, binary classification diagram, educational visualization](1766138123.jpg?ar=square)
+                <div class="image-caption">Spam Classification: Real-world application of Naive Bayes in email filtering</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Real Example - Weather Prediction</h2>
+            
+            <div class="table-container">
+                <h3>Outlook Table:</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Outlook</th>
+                            <th>Yes</th>
+                            <th>No</th>
+                            <th>P(Y)</th>
+                            <th>P(N)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Sunny</td>
+                            <td>2</td>
+                            <td>3</td>
+                            <td>2/9</td>
+                            <td>3/5</td>
+                        </tr>
+                        <tr>
+                            <td>Overcast</td>
+                            <td>4</td>
+                            <td>0</td>
+                            <td>4/9</td>
+                            <td>0/5</td>
+                        </tr>
+                        <tr>
+                            <td>Rainy</td>
+                            <td>3</td>
+                            <td>2</td>
+                            <td>3/9</td>
+                            <td>2/5</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Total</strong></td>
+                            <td><strong>9</strong></td>
+                            <td><strong>5</strong></td>
+                            <td><strong>100%</strong></td>
+                            <td><strong>100%</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-container">
+                <h3>Temperature Table:</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Temperature</th>
+                            <th>Yes</th>
+                            <th>No</th>
+                            <th>P(Y)</th>
+                            <th>P(N)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Hot</td>
+                            <td>2</td>
+                            <td>2</td>
+                            <td>2/9</td>
+                            <td>2/5</td>
+                        </tr>
+                        <tr>
+                            <td>Mild</td>
+                            <td>4</td>
+                            <td>2</td>
+                            <td>4/9</td>
+                            <td>2/5</td>
+                        </tr>
+                        <tr>
+                            <td>Cool</td>
+                            <td>3</td>
+                            <td>1</td>
+                            <td>3/9</td>
+                            <td>1/5</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Total</strong></td>
+                            <td><strong>9</strong></td>
+                            <td><strong>5</strong></td>
+                            <td><strong>100%</strong></td>
+                            <td><strong>100%</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-container">
+                <h3>Play Table:</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Play</th>
+                            <th>Count</th>
+                            <th>Probability</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Yes</td>
+                            <td>9</td>
+                            <td>9/14</td>
+                        </tr>
+                        <tr>
+                            <td>No</td>
+                            <td>5</td>
+                            <td>5/14</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Total</strong></td>
+                            <td><strong>14</strong></td>
+                            <td><strong>100%</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="highlight">
+                <strong>Probability Calculation Formula:</strong><br>
+                P(event) = Event Count / Total Outcomes
+            </div>
+
+            <h3>Prediction Example</h3>
+            <div class="example-box">
+                <strong>What is probability of today (sunny, hot)?</strong><br><br>
+                
+                <strong>Today's Conditions:</strong><br>
+                • Outlook: Sunny<br>
+                • Temperature: Hot<br><br>
+                
+                <strong>For Yes:</strong><br>
+                P(Yes|Today) = P(Sunny|Y) × P(Hot|Y) × P(Y) / P(Today)<br>
+                = (2/9) × (2/9) × (9/14) ≈ 0.031<br><br>
+                
+                <strong>For No:</strong><br>
+                P(No|Today) = P(Sunny|N) × P(Hot|N) × P(N)<br>
+                = (3/5) × (2/5) × (5/14) ≈ 0.0857<br><br>
+                
+                <strong>Normalization:</strong><br>
+                P(Y) = 0.031 / (0.031 + 0.0857) = 0.27<br>
+                P(N) = 1 - 0.27 = 0.73<br><br>
+                
+                <strong>Prediction: No (Don't Play)</strong>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Different Problem Statements You Can Solve</h2>
+            <ul>
+                <li><strong>Sentiment Analysis</strong></li>
+                <li><strong>Spam Classification</strong></li>
+                <li><strong>Twitter Sentiment Analysis</strong></li>
+                <li><strong>Document Categorization</strong></li>
+            </ul>
+
+            <div class="image-container">
+                ![Text classification and sentiment analysis workflow using Naive Bayes, showing positive and negative sentiment classification with feature extraction, NLP pipeline visualization](1766138135.jpg?ar=landscape)
+                <div class="image-caption">Text Classification: Naive Bayes excels in sentiment analysis and document categorization</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>What Is Sentiment Analysis?</h2>
+            <p>Sentiment Analysis is a Natural Language Processing (NLP) technique used to determine whether a piece of text expresses a positive, negative, or neutral emotion.</p>
+            
+            <div class="highlight">
+                <strong>Widely used in:</strong><br>
+                • Product reviews<br>
+                • Social media monitoring<br>
+                • Customer feedback<br>
+                • Movie review classification<br>
+                • Brand reputation analysis
+            </div>
+
+            <pre><code>from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report
+
+# Sample sentiment analysis data
+texts = [
+    "I love this product, it's amazing!",
+    "This is the worst purchase I've ever made",
+    "Great quality and fast shipping",
+    "Terrible customer service",
+    "Excellent value for money",
+    "Poor quality, not worth it"
+]
+
+labels = [1, 0, 1, 0, 1, 0]  # 1: Positive, 0: Negative
+
+# Vectorize the text data
+vectorizer = CountVectorizer()
+X = vectorizer.fit_transform(texts)
+
+# Split the data
+X_train, X_test, y_train, y_test = train_test_split(X, labels, test_size=0.3, random_state=42)
+
+# Train Naive Bayes model
+nb_model = MultinomialNB()
+nb_model.fit(X_train, y_train)
+
+# Make predictions
+y_pred = nb_model.predict(X_test)
+
+# Evaluate the model
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {accuracy:.2f}")
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))</code></pre>
+        </div>
+
+        <div class="section">
+            <h2>Why Naive Bayes is Great for Text</h2>
+            <div class="advantages">
+                <h3>Perfect for Text Classification Because:</h3>
+                <ul>
+                    <li><strong>Text data is high-dimensional</strong> - Many unique words create large feature spaces</li>
+                    <li><strong>Word occurrences are nearly independent</strong> - The naive assumption works well</li>
+                    <li><strong>Multinomial NB handles sparse matrices well</strong> - Most text features are zeros</li>
+                    <li><strong>Fast training and prediction</strong> - Efficient for large text datasets</li>
+                    <li><strong>Works well with small datasets</strong> - Doesn't require massive training data</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Feature Scaling in Naive Bayes</h2>
+            
+            <div class="table-container">
+                <h3>Scaling Example:</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Before Scaling</th>
+                            <th>After Scaling</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Height</td>
+                            <td>150–200 cm</td>
+                            <td>0–1 (normalized)</td>
+                        </tr>
+                        <tr>
+                            <td>Weight</td>
+                            <td>50–120 kg</td>
+                            <td>0–1 (normalized)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="highlight">
+                <strong>Why do we scale?</strong><br>
+                Some algorithms depend heavily on distances or magnitudes:<br>
+                1. KNN<br>
+                2. SVM<br>
+                3. Logistic Regression<br>
+                4. Linear Regression<br>
+                5. Neural Networks<br>
+                6. K-Means<br>
+                7. Gradient Boosting / Trees (sometimes optional)<br><br>
+                
+                <strong>But Naive Bayes is different:</strong><br>
+                • Uses probability distributions, not distances or magnitudes<br>
+                • <strong>Feature scaling is NOT required for Naive Bayes!</strong>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Handling Missing Values</h2>
+            <div class="advantages">
+                <h3>Naive Bayes can handle missing data effectively:</h3>
+                <ul>
+                    <li><strong>Attributes are handled separately</strong> by the algorithm at both model construction time and prediction time</li>
+                    <li><strong>If a data instance has a missing value</strong> for an attribute, it can be ignored while preparing the model</li>
+                    <li><strong>During prediction</strong>, if a feature is missing, just don't use it in the probability product</li>
+                    <li><strong>Robust approach</strong> - Missing values don't break the algorithm</li>
+                </ul>
+            </div>
+
+            <pre><code>import numpy as np
+from sklearn.naive_bayes import GaussianNB
+
+# Example with missing values
+X_with_missing = np.array([
+    [1.0, 2.0],
+    [np.nan, 3.0],  # Missing value
+    [3.0, 4.0],
+    [2.0, np.nan],  # Missing value
+    [1.5, 2.5]
+])
+
+y = np.array([0, 1, 1, 0, 0])
+
+# Naive Bayes can handle missing values with preprocessing
+from sklearn.impute import SimpleImputer
+
+# Impute missing values with mean
+imputer = SimpleImputer(strategy='mean')
+X_imputed = imputer.fit_transform(X_with_missing)
+
+# Train the model
+nb_model = GaussianNB()
+nb_model.fit(X_imputed, y)
+
+print("Model trained successfully with missing value handling!")</code></pre>
+        </div>
+
+        <div class="section">
+            <h2>Impact of Outliers</h2>
+            <div class="highlight">
+                <strong>Naive Bayes is usually robust to outliers</strong><br><br>
+                
+                <strong>Why?</strong><br>
+                • It's based on probability distributions rather than distance metrics<br>
+                • Outliers don't heavily influence the overall probability calculations<br>
+                • Each feature is considered independently<br>
+                • The algorithm focuses on patterns rather than exact values
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Types of Naive Bayes Classifiers</h2>
+            
+            <h3>1. Gaussian Naive Bayes</h3>
+            <p>For continuous features that follow a normal distribution.</p>
+            
+            <div class="formula">
+                <div class="formula-title">Gaussian Distribution:</div>
+                <strong>P(xᵢ|y) = (1/√(2πσ²)) × e^(-(xᵢ-μ)²/(2σ²))</strong>
+            </div>
+
+            <pre><code>from sklearn.naive_bayes import GaussianNB
+from sklearn.datasets import make_classification
+
+# Generate continuous data
+X, y = make_classification(n_samples=1000, n_features=4, n_classes=2, random_state=42)
+
+# Gaussian Naive Bayes for continuous features
+gnb = GaussianNB()
+gnb.fit(X, y)
+
+# Make predictions
+predictions = gnb.predict(X)
+probabilities = gnb.predict_proba(X)</code></pre>
+
+            <h3>2. Multinomial Naive Bayes</h3>
+            <p>For discrete features (like word counts in text).</p>
+
+            <pre><code>from sklearn.naive_bayes import MultinomialNB
+from sklearn.feature_extraction.text import CountVectorizer
+
+# Text data
+documents = [
+    "I love machine learning",
+    "Python is great for data science",
+    "Naive Bayes works well for text classification"
+]
+labels = [1, 0, 1]
+
+# Convert text to features
+vectorizer = CountVectorizer()
+X = vectorizer.fit_transform(documents)
+
+# Multinomial Naive Bayes for text/count data
+mnb = MultinomialNB()
+mnb.fit(X, labels)</code></pre>
+
+            <h3>3. Bernoulli Naive Bayes</h3>
+            <p>For binary features (presence/absence).</p>
+
+            <pre><code>from sklearn.naive_bayes import BernoulliNB
+
+# Binary feature data (0s and 1s)
+X_binary = [[1, 0, 1, 0],
+           [0, 1, 1, 1],
+           [1, 1, 0, 0],
+           [0, 0, 1, 1]]
+y_binary = [1, 0, 1, 0]
+
+# Bernoulli Naive Bayes for binary features
+bnb = BernoulliNB()
+bnb.fit(X_binary, y_binary)</code></pre>
+        </div>
+
+        <div class="section">
+            <h2>Complete Implementation Example</h2>
+            
+            <pre><code>import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Sample dataset creation (replace with your actual data)
+data = {
+    'text': [
+        "I love this product amazing quality",
+        "Terrible experience worst purchase ever",
+        "Great value for money highly recommend",
+        "Poor quality not worth the price",
+        "Excellent customer service very satisfied",
+        "Disappointing product waste of money",
+        "Outstanding performance exceeded expectations",
+        "Awful quality complete disappointment"
+    ],
+    'sentiment': [1, 0, 1, 0, 1, 0, 1, 0]  # 1: Positive, 0: Negative
+}
+
+df = pd.DataFrame(data)
+
+# Feature extraction using TF-IDF
+vectorizer = TfidfVectorizer(max_features=1000, stop_words='english')
+X = vectorizer.fit_transform(df['text'])
+y = df['sentiment']
+
+# Split the data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Train Naive Bayes model
+nb_model = MultinomialNB(alpha=1.0)  # alpha is smoothing parameter
+nb_model.fit(X_train, y_train)
+
+# Make predictions
+y_pred = nb_model.predict(X_test)
+y_pred_proba = nb_model.predict_proba(X_test)
+
+# Evaluate the model
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {accuracy:.4f}")
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred, target_names=['Negative', 'Positive']))
+
+# Confusion Matrix
+cm = confusion_matrix(y_test, y_pred)
+plt.figure(figsize=(8, 6))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', 
+            xticklabels=['Negative', 'Positive'], 
+            yticklabels=['Negative', 'Positive'])
+plt.title('Confusion Matrix')
+plt.ylabel('Actual')
+plt.xlabel('Predicted')
+plt.show()
+
+# Feature importance (top words for each class)
+feature_names = vectorizer.get_feature_names_out()
+log_prob_pos = nb_model.feature_log_prob_,[object Object],
+log_prob_neg = nb_model.feature_log_prob_,[object Object],
+
+# Top positive words
+top_pos_indices = log_prob_pos.argsort()[-10:][::-1]
+top_pos_words = [feature_names[i] for i in top_pos_indices]
+print("\nTop words for Positive sentiment:")
+print(top_pos_words)
+
+# Top negative words
+top_neg_indices = log_prob_neg.argsort()[-10:][::-1]
+top_neg_words = [feature_names[i] for i in top_neg_indices]
+print("\nTop words for Negative sentiment:")
+print(top_neg_words)</code></pre>
+        </div>
+
+        <div class="section">
+            <h2>Advantages of Naive Bayes</h2>
+            <div class="advantages">
+                <ul>
+                    <li><strong>Simple and Fast:</strong> Easy to implement and computationally efficient</li>
+                    <li><strong>Works with Small Datasets:</strong> Performs well even with limited training data</li>
+                    <li><strong>Handles Multiple Classes:</strong> Naturally supports multi-class classification</li>
+                    <li><strong>Good Baseline:</strong> Excellent starting point for classification problems</li>
+                    <li><strong>Probabilistic Output:</strong> Provides probability estimates, not just predictions</li>
+                    <li><strong>Feature Independence:</strong> Works well when features are actually independent</li>
+                    <li><strong>Robust to Irrelevant Features:</strong> Noise in irrelevant features doesn't affect performance much</li>
+                    <li><strong>No Hyperparameter Tuning:</strong> Minimal parameter tuning required</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Disadvantages of Naive Bayes</h2>
+            <div class="disadvantages">
+                <ul>
+                    <li><strong>Strong Independence Assumption:</strong> Assumes features are independent, which is often unrealistic</li>
+                    <li><strong>Limited Expressiveness:</strong> Cannot capture complex relationships between features</li>
+                    <li><strong>Categorical Inputs:</strong> Requires categorical inputs for optimal performance</li>
+                    <li><strong>Zero Probability Problem:</strong> If a category wasn't seen in training, it gets zero probability</li>
+                    <li><strong>Poor Estimator:</strong> Probability estimates can be poor, though classifications are often good</li>
+                    <li><strong>Continuous Features:</strong> Assumes Gaussian distribution for continuous features</li>
+                    <li><strong>Correlated Features:</strong> Performance degrades when features are highly correlated</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>When to Use Naive Bayes</h2>
+            <div class="highlight">
+                <strong>Best Use Cases:</strong><br>
+                • Text classification (spam detection, sentiment analysis)<br>
+                • Document categorization<br>
+                • Real-time predictions (due to speed)<br>
+                • Multi-class classification problems<br>
+                • When you have limited training data<br>
+                • As a baseline model for comparison<br>
+                • When features are actually independent<br>
+                • When you need probability estimates
+            </div>
+        </div>
     </div>
 </body>
 </html>
