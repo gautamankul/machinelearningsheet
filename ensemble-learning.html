@@ -1,11 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
-    <title>Data Science Cheat Sheet - Ensemble Learning</title>
+    <title>Bagging & Boosting Techniques</title>
     <style>
         * {
             margin: 0;
@@ -15,605 +13,455 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            padding: 20px;
         }
 
         .container {
-            max-width: 900px;
-            margin: 40px auto;
+            max-width: 1200px;
+            margin: 0 auto;
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-            flex: 1;
-        }
-
-        .content-wrapper {
-            min-height: 700px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .loading {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 700px;
-            font-size: 1.5em;
-            color: #667eea;
-        }
-
-        footer {
-            background: #2c3e50;
-            padding: 30px;
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            font-size: 1.1em;
-            font-weight: bold;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        button:active:not(:disabled) {
-            transform: translateY(0);
-        }
-
-        button:disabled {
-            background: #95a5a6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .page-indicator {
-            text-align: center;
-            padding: 20px;
-            color: #ecf0f1;
-            font-size: 1.1em;
-            background: #34495e;
-        }
-
-        /* Styles for loaded HTML content */
-        .image-section {
-            width: 100%;
-            height: 400px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .image-section img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-        .content-section {
             padding: 40px;
-            min-height: 300px;
-            overflow-x: auto;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
         }
 
-        .content-section h1 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 2.5em;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-        }
-
-        .content-section h2 {
+        h1 {
             color: #667eea;
-            margin-top: 25px;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 15px;
+        }
+
+        h2 {
+            color: #764ba2;
+            margin-top: 30px;
             margin-bottom: 15px;
             font-size: 1.8em;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
+            border-left: 5px solid #764ba2;
+            padding-left: 15px;
         }
 
-        .content-section h3 {
+        h3 {
+            color: #667eea;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            font-size: 1.4em;
+        }
+
+        h4 {
             color: #555;
             margin-top: 20px;
             margin-bottom: 10px;
-            font-size: 1.3em;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
+            font-size: 1.2em;
         }
 
-        .content-section p {
-            color: #666;
-            line-height: 1.8;
-            font-size: 1.05em;
+        p {
             margin-bottom: 15px;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
+            text-align: justify;
         }
 
-        .content-section ul,
-        .content-section ol {
+        .intro-box {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-left: 4px solid #667eea;
+        }
+
+        .ensemble-types {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .ensemble-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .ensemble-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .ensemble-card h3 {
+            margin-top: 0;
+        }
+
+        .formula {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 3px solid #667eea;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            border: 2px solid #667eea;
+        }
+
+        code {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9em;
+        }
+
+        .image-placeholder {
+            text-align: center;
+            margin: 25px 0;
+        }
+
+        .image-placeholder img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            height: 300px;
+        }
+
+        ul, ol {
             margin-left: 30px;
             margin-bottom: 15px;
         }
 
-        .content-section li {
-            color: #666;
-            line-height: 1.8;
+        li {
             margin-bottom: 10px;
-            font-size: 1.05em;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
         }
 
-        .code-block {
-            background: #f5f5f5;
-            border-left: 4px solid #667eea;
-            padding: 15px;
-            margin: 15px 0;
-            font-family: 'Courier New', monospace;
-            overflow-x: auto;
-            border-radius: 5px;
-            font-size: 0.9em;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-        }
-
-        .formula {
-            background: #f9f9f9;
-            border: 1px solid #e0e0e0;
-            padding: 15px;
-            margin: 15px 0;
-            font-style: italic;
-            border-radius: 5px;
-            color: #333;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-        }
-
-        .table-container {
-            overflow-x: auto;
+        .comparison-box {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 10px;
             margin: 20px 0;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            table-layout: auto;
-        }
-
-        th {
-            background: #667eea;
-            color: white;
-            padding: 12px;
-            text-align: left;
-            font-weight: bold;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-        }
-
-        td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            color: #666;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
-        }
-
-        tr:nth-child(even) {
-            background: #f9f9f9;
+            border-left: 4px solid #ffc107;
         }
 
         .highlight {
-            background: #fff3cd;
+            background: #fffacd;
             padding: 2px 6px;
             border-radius: 3px;
         }
 
-        .grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin: 20px 0;
+        .section {
+            margin-bottom: 40px;
         }
 
-        .grid-item {
-            background: #f9f9f9;
-            padding: 20px;
+        .key-points {
+            background: #e7f3ff;
+            padding: 15px;
             border-radius: 8px;
-            border-left: 4px solid #667eea;
-            word-wrap: break-word;
-            overflow-wrap: break-word;
+            margin: 15px 0;
+            border-left: 4px solid #2196F3;
         }
 
-        .grid-item h3 {
-            margin-top: 0;
+        .architecture-steps {
+            counter-reset: step-counter;
+            list-style: none;
+            margin-left: 0;
         }
 
-        @media print {
-            body {
-                margin: 0;
-                padding: 0;
-            }
-
-            .container {
-                margin: 0;
-                box-shadow: none;
-                border-radius: 0;
-            }
-
-            .content-section {
-                padding: 20px;
-                page-break-inside: avoid;
-            }
-
-            footer,
-            .page-indicator {
-                display: none;
-            }
+        .architecture-steps li {
+            counter-increment: step-counter;
+            margin-bottom: 15px;
+            padding-left: 40px;
+            position: relative;
         }
 
-        @media (max-width: 900px) {
-            .container {
-                margin: 20px;
-            }
-
-            .content-section {
-                padding: 30px 20px;
-            }
-
-            .content-section h1 {
-                font-size: 2em;
-            }
-
-            .content-section h2 {
-                font-size: 1.5em;
-            }
-
-            .grid-2 {
-                grid-template-columns: 1fr;
-            }
-
-            footer {
-                flex-direction: column;
-                gap: 10px;
-            }
-
-            button {
-                width: 100%;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                margin: 10px;
-                border-radius: 10px;
-            }
-
-            .content-section {
-                padding: 20px;
-                min-height: auto;
-            }
-
-            .content-section h1 {
-                font-size: 1.8em;
-                margin-bottom: 15px;
-            }
-
-            .content-section h2 {
-                font-size: 1.3em;
-            }
-
-            .content-section h3 {
-                font-size: 1.1em;
-            }
-
-            .content-section p,
-            .content-section li {
-                font-size: 0.95em;
-            }
-
-            button {
-                padding: 12px 30px;
-                font-size: 1em;
-            }
-
-            .page-indicator {
-                font-size: 0.95em;
-                padding: 15px;
-            }
-
-            table {
-                font-size: 0.9em;
-            }
-
-            th,
-            td {
-                padding: 8px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                margin: 5px;
-                border-radius: 8px;
-            }
-
-            .content-section {
-                padding: 15px;
-            }
-
-            .content-section h1 {
-                font-size: 1.5em;
-            }
-
-            .content-section h2 {
-                font-size: 1.1em;
-            }
-
-            .content-section p,
-            .content-section li {
-                font-size: 0.9em;
-                line-height: 1.6;
-            }
-
-            button {
-                padding: 10px 25px;
-                font-size: 0.9em;
-            }
-
-            .grid-item {
-                padding: 15px;
-            }
-
-            .code-block {
-                padding: 10px;
-                font-size: 0.8em;
-            }
-
-            table {
-                font-size: 0.8em;
-            }
-
-            th,
-            td {
-                padding: 6px;
-            }
+        .architecture-steps li:before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
         }
     </style>
 </head>
-
 <body>
     <div class="container">
-        <div id="contentContainer" class="content-wrapper">
-            <div class="content-section">
-                <h1>Ensemble Learning in Machine Learning</h1>
+        <h1>🎯 Bagging & Boosting Techniques</h1>
 
-                <h2>What is Ensemble Learning? (Interview-ready answer)</h2>
-                <p>Ensemble learning combines multiple weak models (learners) to produce a stronger single model. Typical goals are to reduce variance (bagging), reduce bias (boosting), or improve predictive performance (stacking). Ensembles work because independent errors from weak learners can cancel out when combined.</p>
+        <div class="intro-box">
+            <p><strong>Ensembles solve overfitting the training data or underperformance on unseen instances by aggregating models and balancing their errors.</strong></p>
+        </div>
 
-                <h2>The Three Main Approaches</h2>
-
-                <div class="grid-2">
-                    <div class="grid-item">
-                        <h3>1. Bagging</h3>
-                        <p><strong>Definition:</strong> Bootstrap Aggregating - Train N models on different bootstrap samples in parallel.</p>
-                        <p><strong>Mechanism:</strong> Voting/averaging reduces variance.</p>
-                        <p><strong>Popular Example:</strong> Random Forest</p>
-                        <p><strong>Best for:</strong> High variance, low bias problems</p>
-                    </div>
-                    <div class="grid-item">
-                        <h3>2. Boosting</h3>
-                        <p><strong>Definition:</strong> Train models sequentially; later learners focus on examples earlier learners misclassified.</p>
-                        <p><strong>Mechanism:</strong> Weighted voting reduces bias.</p>
-                        <p><strong>Popular Examples:</strong> AdaBoost, XGBoost, LightGBM, CatBoost</p>
-                        <p><strong>Best for:</strong> Low variance, high bias problems</p>
-                    </div>
+        <div class="section">
+            <h2>📊 Type of Ensemble</h2>
+            
+            <div class="ensemble-types">
+                <div class="ensemble-card">
+                    <h3>1. Bagging</h3>
+                    <p>It is a homogeneous weak learners' model that learns from each other independently in parallel and combines them for determining the model average.</p>
+                    <p><strong>Example Algorithms:</strong> Random Forest (most famous bagging-based algorithm).</p>
                 </div>
 
-                <h3>3. Stacking</h3>
-                <p>Train heterogeneous base learners and a meta-learner that takes their predictions as input to produce the final prediction. More complex but can achieve best results.</p>
-
-                <h2>Block Diagrams (Simplified)</h2>
-
-                <div class="grid-2">
-                    <div class="grid-item">
-                        <strong>Bagging Pipeline</strong>
-                        <p style="margin-top: 10px; font-size: 0.9em;">
-                            1. Create N bootstrap subsets<br>
-                            2. Train N weak models in parallel<br>
-                            3. Combine via voting/averaging<br>
-                            4. Output final prediction
-                        </p>
-                    </div>
-                    <div class="grid-item">
-                        <strong>Boosting Pipeline</strong>
-                        <p style="margin-top: 10px; font-size: 0.9em;">
-                            1. Train first weak learner<br>
-                            2. Adjust weights on misclassified examples<br>
-                            3. Train next learner sequentially<br>
-                            4. Weighted vote for final prediction
-                        </p>
-                    </div>
+                <div class="ensemble-card">
+                    <h3>2. Boosting</h3>
+                    <p>It is also a homogeneous weak learners' model but works differently from Bagging. In this model, learners learn sequentially and adaptively to improve model predictions of a learning algorithm.</p>
+                    <p><strong>Example Algorithms:</strong> AdaBoost, Gradient Boosting, XGBoost, LightGBM, CatBoost.</p>
                 </div>
+            </div>
+        </div>
 
-                <div class="grid-item" style="margin: 20px 0;">
-                    <strong>Stacking Pipeline</strong>
-                    <p style="margin-top: 10px; font-size: 0.9em;">
-                        1. Split data for meta-training<br>
-                        2. Train diverse base learners<br>
-                        3. Generate base learner predictions<br>
-                        4. Train meta-learner on these predictions<br>
-                        5. Use meta-learner for final prediction
-                    </p>
-                </div>
+        <div class="image-placeholder">
+            <img src="https://github.com/dhanushupgrad/ModelDiagram/blob/main/ensemble%20types.png?raw=true" alt="Ensemble Methods Diagram" height="300px">
+        </div>
 
-                <h2>Parameter Comparison</h2>
+        <div class="section">
+            <h2>1️⃣ Bagging</h2>
+            
+            <p>It is an ensemble technique used to reduce variance and improve model stability.</p>
+            
+            <p>It works by creating multiple training datasets through <span class="highlight">row sampling with replacement</span> — known as bootstrap sampling — from the original dataset.</p>
 
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Parameter</th>
-                                <th>Bagging</th>
-                                <th>Boosting</th>
-                                <th>Stacking</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><strong>Primary Focus</strong></td>
-                                <td>Reducing Variance</td>
-                                <td>Reducing Bias</td>
-                                <td>Improving Overall Accuracy</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Base Learners</strong></td>
-                                <td>Homogeneous</td>
-                                <td>Homogeneous</td>
-                                <td>Heterogeneous</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Training</strong></td>
-                                <td>Parallel</td>
-                                <td>Sequential</td>
-                                <td>Parallel then Sequential</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Aggregation</strong></td>
-                                <td>Simple Voting/Average</td>
-                                <td>Weighted Voting</td>
-                                <td>Meta-learner (Learned Voting)</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Computation Time</strong></td>
-                                <td>Low (Parallel)</td>
-                                <td>High (Sequential)</td>
-                                <td>Very High (Multiple phases)</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Overfitting Risk</strong></td>
-                                <td>Low</td>
-                                <td>Medium-High</td>
-                                <td>High</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+            <p>Each of these samples is used to train a separate model independently and in parallel. Once trained, the predictions from all models are aggregated — typically using majority voting for classification or averaging for regression. This helps reduce overfitting and makes the overall model more robust.</p>
 
-                <h2>Quick Tips for Interviews</h2>
+            <div class="key-points">
+                <h4>Row sampling with replacement:</h4>
+                <p>In bagging means creating bootstrap datasets by randomly drawing rows from the original dataset. Allowing duplicates, so each model trains on a slightly different dataset. This diversity among models is what makes bagging powerful.</p>
+            </div>
+
+            <h3>Random Forest (Classifier/Regressor)</h3>
+            
+            <p>In random forest we will use decision tree for training the subset over the row sampling with replacement along with feature sampling.</p>
+            
+            <p>Because we are using final majority vote for final output, it will reduce the high variance to low variance with multiple decision trees.</p>
+            
+            <p>It will not affect when small dataset comes again for training.</p>
+            
+            <p>In Regression problem on final output eg=[2.8, 0.99] it will take mean or median for final output.</p>
+
+            <pre><code>from sklearn.ensemble import RandomForestClassifier
+
+            model = RandomForestClassifier(n_estimators=100, max_depth=10)
+            model.fit(X_train, y_train)
+            predictions = model.predict(X_test)</code></pre>
+        </div>
+
+        <div class="image-placeholder">
+            <img src="https://github.com/dhanushupgrad/ModelDiagram/blob/main/soving%20diagram%20for%20random%20forest.png?raw=true" alt="Bagging Process Illustration">
+        </div>
+
+        <div class="section">
+            <h2>2️⃣ Boosting</h2>
+            
+            <p>Boosting builds an ensemble of models sequentially where each new model learns from the mistakes of the previous ones. It focuses on hard-to-predict examples and gradually improves overall accuracy.</p>
+            
+            <div class="key-points">
                 <ul>
-                    <li><span class="highlight">Describe the intuition first</span> - Talk about variance vs bias problems</li>
-                    <li><span class="highlight">Mention popular algorithms:</span>
-                        <ul style="margin-top: 10px;">
-                            <li><strong>Bagging:</strong> Random Forest, Bagging Classifier/Regressor</li>
-                            <li><strong>Boosting:</strong> AdaBoost, Gradient Boosting, XGBoost, LightGBM, CatBoost</li>
-                            <li><strong>Stacking:</strong> Custom implementations with multiple base learners</li>
-                        </ul>
-                    </li>
-                    <li><span class="highlight">Talk about tradeoffs:</span>
-                        <ul style="margin-top: 10px;">
-                            <li>Computational cost vs accuracy gain</li>
-                            <li>Model interpretability vs performance</li>
-                            <li>Overfitting risk with complex ensembles</li>
-                            <li>Hyperparameter tuning complexity</li>
-                        </ul>
-                    </li>
-                    <li><span class="highlight">Know when to use each:</span>
-                        <ul style="margin-top: 10px;">
-                            <li>Bagging: Fast predictions, need to reduce variance</li>
-                            <li>Boosting: Can tolerate higher training time, need to reduce bias</li>
-                            <li>Stacking: Competitive settings, maximum accuracy needed</li>
-                        </ul>
-                    </li>
+                    <li>Usually aggregation done by weighted voting or weighted averaging</li>
+                    <li>No replacement; uses full data but reweights samples</li>
+                    <li>Reduce bias and improve accuracy</li>
                 </ul>
+            </div>
 
-                <h2>Python Implementation Examples</h2>
+            <h3>a. AdaBoost</h3>
+            
+            <p>It is also known as adaptive boosting technique. Its intuition is error-focused, and its mathematics is weight-driven. Usually uses shallow decision trees.</p>
 
-                <h3>Bagging (Random Forest):</h3>
-                <div class="code-block">
-from sklearn.ensemble import RandomForestClassifier<br>
-<br>
-model = RandomForestClassifier(n_estimators=100, max_depth=10)<br>
-model.fit(X_train, y_train)<br>
-predictions = model.predict(X_test)
-                </div>
+            <h4>Mathematical Formulation</h4>
 
-                <h3>Boosting (XGBoost):</h3>
-                <div class="code-block">
-from xgboost import XGBClassifier<br>
-<br>
-model = XGBClassifier(n_estimators=100, learning_rate=0.1)<br>
-model.fit(X_train, y_train)<br>
-predictions = model.predict(X_test)
-                </div>
+            <ol>
+                <li><strong>Initialize Weights:</strong></li>
+            </ol>
+            <div class="formula">
+                w<sub>i</sub> = 1/N (uniformly distributed for each sample i)
+            </div>
 
-                <h3>Stacking:</h3>
-                <div class="code-block">
-from sklearn.ensemble import StackingClassifier<br>
-from sklearn.ensemble import RandomForestClassifier, SVC<br>
-from sklearn.linear_model import LogisticRegression<br>
-<br>
-base_learners = [<br>
-&nbsp;&nbsp;('rf', RandomForestClassifier()),<br>
-&nbsp;&nbsp;('svm', SVC(probability=True))<br>
-]<br>
-meta_learner = LogisticRegression()<br>
-<br>
-model = StackingClassifier(estimators=base_learners, final_estimator=meta_learner)<br>
+            <ol start="2">
+                <li><strong>Train Weak Learner:</strong></li>
+            </ol>
+            <div class="formula">
+                Train model h<sub>t</sub>(x) on weighted data
+            </div>
+
+            <ol start="3">
+                <li><strong>Compute Error:</strong></li>
+            </ol>
+            <div class="formula">
+                ε<sub>t</sub> = Σ<sub>i=1 to N</sub> w<sub>i</sub> · I(h<sub>t</sub>(x<sub>i</sub>) ≠ y<sub>i</sub>)
+                <br><small>Where I is the indicator function</small>
+            </div>
+
+            <ol start="4">
+                <li><strong>Compute Model Weight:</strong></li>
+            </ol>
+            <div class="formula">
+                α<sub>t</sub> = (1/2) · ln((1 - ε<sub>t</sub>) / ε<sub>t</sub>)
+                <br><small>Higher accuracy → higher α<sub>t</sub></small>
+            </div>
+
+            <ol start="5">
+                <li><strong>Update Sample Weights:</strong></li>
+            </ol>
+            <div class="formula">
+                w<sub>i</sub> ← w<sub>i</sub> · e<sup>-α<sub>t</sub> · y<sub>i</sub> · h<sub>t</sub>(x<sub>i</sub>)</sup>
+                <br><small>Misclassified samples → weight increases</small>
+                <br><small>Correctly classified → weight decreases</small>
+                <br><small>Normalize weights so they sum to 1</small>
+            </div>
+
+            <ol start="6">
+                <li><strong>Final Strong Classifier:</strong></li>
+            </ol>
+            <div class="formula">
+                H(x) = sign(Σ<sub>t=1 to T</sub> α<sub>t</sub> · h<sub>t</sub>(x))
+            </div>
+
+            <pre><code>from sklearn.ensemble import AdaBoostClassifier
+
+            # Initialize the AdaBoost model
+            model = AdaBoostClassifier(
+                n_estimators=100,  # number of weak learners (default: 50)
+                learning_rate=1.0  # controls contribution of each classifier
+            )
+
+            # Train the model
+            model.fit(X_train, y_train)
+            predictions = model.predict(X_test)</code></pre>
+
+            <div class="image-placeholder">
+                <img src="https://raw.githubusercontent.com/dhanushupgrad/ModelDiagram/85ef460af615ca386b33ac63c6c4a794aef45c40/adaboost%20architecture.png" alt="AdaBoost Process">
+            </div>
+
+            <h3>b. Gradient Boosting</h3>
+            
+            <p>Build a strong model by sequentially adding weak learners that correct the residual errors of previous models.</p>
+            
+            <p>Each new model fits the gradient of the loss function — i.e., it learns to minimize the error directly.</p>
+            
+            <div class="comparison-box">
+                <p><strong>Key Difference:</strong> AdaBoost reweights samples; Gradient Boosting fits residuals using gradient descent.</p>
+                <p>Residual errors via gradient uses weak learners (e.g., shallow trees).</p>
+            </div>
+
+            <p>GradientBoostingClassifier builds trees sequentially, like AdaBoost, but instead of reweighting samples, it fits each new tree to the residual errors of the previous ensemble (gradient descent on loss function).</p>
+
+            <h4>🏗 Architecture of Gradient Boosting</h4>
+            
+            <ol class="architecture-steps">
+                <li>Start with a base prediction (e.g., mean for regression)</li>
+                <li>Compute residuals (errors between prediction and actual)</li>
+                <li>Train a weak learner (e.g., decision tree) to predict these residuals</li>
+                <li>Add this learner's output to the previous prediction</li>
+                <li>Repeat for T rounds</li>
+                <li>Final prediction is the sum of all learners, each scaled by a learning rate</li>
+            </ol>
+
+            <pre><code>from sklearn.ensemble import GradientBoostingClassifier
+
+            # Initialize the Gradient Boosting model
+            model = GradientBoostingClassifier(
+                n_estimators=100,   # number of boosting stages
+                learning_rate=0.1,  # step size shrinkage
+                max_depth=3         # depth of individual trees
+            )
+
+            # Train the model
+            model.fit(X_train, y_train)
+            predictions = model.predict(X_test)</code></pre>
+
+            <div class="image-placeholder">
+                <img src="https://raw.githubusercontent.com/dhanushupgrad/ModelDiagram/2237d1f13cec58ca87d56a5d7ab95ae7d7454acb/gradient%20descent%20architecture.png" alt="Gradient Boosting Architecture">
+            </div>
+
+            <h3>c. XGBoost</h3>
+            
+            <p>XGBoost (Extreme Gradient Boosting) is an advanced, regularized version of gradient boosting that builds trees sequentially to minimize error, using second-order optimization and shrinkage for better accuracy and generalization.</p>
+            
+            <p>It's an optimized implementation of gradient boosting with additional regularization (L1/L2) to reduce overfitting.</p>
+
+            <h4>Key Enhancements over Gradient Boosting:</h4>
+            <ul>
+                <li><strong>Regularization:</strong> Penalizes model complexity to prevent overfitting</li>
+                <li><strong>Second-order Taylor approximation:</strong> Uses both gradient and Hessian (curvature) for more precise updates</li>
+                <li><strong>Shrinkage (learning rate):</strong> Scales each tree's contribution</li>
+                <li><strong>Column subsampling:</strong> Adds randomness to improve generalization</li>
+                <li><strong>Parallelization:</strong> Efficient tree construction and scalability</li>
+            </ul>
+
+<pre><code>from xgboost import XGBClassifier
+
+# Initialize the XGBoost model
+model = XGBClassifier(
+    n_estimators=100,      # number of boosting rounds
+    learning_rate=0.1,     # step size shrinkage
+    max_depth=3,           # depth of individual trees
+    subsample=0.8,         # fraction of samples used per tree
+    colsample_bytree=0.8,  # fraction of features used per tree
+    random_state=42
+)
+
+# Train the model
 model.fit(X_train, y_train)
+
+# Make predictions
+predictions = model.predict(X_test)</code></pre>
+
+            <div class="image-placeholder">
+                <img src="default.png" alt="XGBoost Architecture">
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔍 Important Properties of Random Forest Classifiers</h2>
+            
+            <div class="comparison-box">
+                <ol>
+                    <li><strong>Decision Tree:</strong> Low Bias and High Variance</li>
+                    <li><strong>Ensemble Bagging (Random Forest Classifier):</strong> Low Bias and Low Variance</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⚖️ AdaBoost vs Gradient Boosting vs XGBoost</h2>
+
+            <div class="ensemble-types">
+                <div class="ensemble-card">
+                    <h4>a. AdaBoost</h4>
+                    <p><strong>Key phrase:</strong> "Adaptive Boosting adjusts sample weights to emphasize misclassified points."</p>
+                    <p><strong>Weakness:</strong> Sensitive to outliers and noisy data.</p>
+                    <p><strong>Use case:</strong> Good for simple datasets where interpretability matters.</p>
                 </div>
 
-                <h2>Key Takeaways</h2>
-                <ul>
-                    <li>Ensemble methods combine weak learners to create a strong learner</li>
-                    <li>Bagging reduces variance through parallel training and averaging</li>
-                    <li>Boosting reduces bias through sequential training and weighted voting</li>
-                    <li>Stacking uses a meta-learner to optimally combine base learner predictions</li>
-                    <li>Choose the method based on your bias-variance analysis</li>
-                    <li>Trade-off between computational cost and performance improvement</li>
-                </ul>
+                <div class="ensemble-card">
+                    <h4>b. Gradient Boosting</h4>
+                    <p><strong>Key phrase:</strong> "Gradient Boosting builds trees sequentially, each correcting residual errors of the previous."</p>
+                    <p><strong>Weakness:</strong> Can overfit if n_estimators or max_depth are too high.</p>
+                    <p><strong>Use case:</strong> Balanced choice for structured/tabular data.</p>
+                </div>
 
+                <div class="ensemble-card">
+                    <h4>c. XGBoost</h4>
+                    <p><strong>Key phrase:</strong> "XGBoost is Gradient Boosting with system-level optimizations and regularization."</p>
+                    <p><strong>Strength:</strong> Fast, accurate, widely used in Kaggle competitions and industry.</p>
+                    <p><strong>Use case:</strong> Large datasets, production ML pipelines, when speed and accuracy are critical.</p>
+                </div>
             </div>
         </div>
     </div>
-
-    <div class="page-indicator">
-        Ensemble Learning Cheat Sheet
-    </div>
-
-    <footer>
-        <button onclick="window.print()">🖨️ Print</button>
-        <button onclick="scrollToTop()">⬆️ Top</button>
-    </footer>
-
-    <script>
-        function scrollToTop() {
-            document.querySelector('.content-wrapper').scrollTo({ top: 0, behavior: 'smooth' });
-        }
-    </script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
 </body>
-
 </html>
