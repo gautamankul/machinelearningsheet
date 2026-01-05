@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decision Trees - Complete Guide</title>
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%2310b981;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%2306b6d4;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23grad)'/%3E%3Cg fill='white'%3E%3Ccircle cx='50' cy='20' r='6'/%3E%3Cline x1='50' y1='26' x2='30' y2='45' stroke='white' stroke-width='2'/%3E%3Cline x1='50' y1='26' x2='70' y2='45' stroke='white' stroke-width='2'/%3E%3Ccircle cx='30' cy='50' r='5'/%3E%3Ccircle cx='70' cy='50' r='5'/%3E%3Cline x1='30' y1='55' x2='20' y2='70' stroke='white' stroke-width='2'/%3E%3Cline x1='30' y1='55' x2='40' y2='70' stroke='white' stroke-width='2'/%3E%3Cline x1='70' y1='55' x2='60' y2='70' stroke='white' stroke-width='2'/%3E%3Cline x1='70' y1='55' x2='80' y2='70' stroke='white' stroke-width='2'/%3E%3Crect x='15' y='70' width='10' height='10' rx='2'/%3E%3Crect x='35' y='70' width='10' height='10' rx='2'/%3E%3Crect x='55' y='70' width='10' height='10' rx='2'/%3E%3Crect x='75' y='70' width='10' height='10' rx='2'/%3E%3C/g%3E%3C/svg%3E">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            color: #10b981;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            border-bottom: 3px solid #10b981;
+            padding-bottom: 15px;
+        }
+
+        h2 {
+            color: #06b6d4;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+            border-left: 5px solid #06b6d4;
+            padding-left: 15px;
+        }
+
+        h3 {
+            color: #10b981;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            font-size: 1.4em;
+        }
+
+        h4 {
+            color: #555;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        .intro-box {
+            background: linear-gradient(135deg, #10b98115 0%, #06b6d415 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-left: 4px solid #10b981;
+        }
+
+        .definition-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            margin: 20px 0;
+        }
+
+        .formula {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 3px solid #10b981;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            font-size: 1.1em;
+        }
+
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            border: 2px solid #10b981;
+        }
+
+        code {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9em;
+        }
+
+        .image-placeholder {
+            text-align: center;
+            margin: 25px 0;
+        }
+
+        .image-placeholder img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        ul,
+        ol {
+            margin-left: 30px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .comparison-table th {
+            background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .comparison-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .comparison-table tr:hover {
+            background: #f5f5f5;
+        }
+
+        .highlight {
+            background: #fef3c7;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .key-points {
+            background: #e0f2fe;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #06b6d4;
+        }
+
+        .warning-box {
+            background: #fee2e2;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #ef4444;
+        }
+
+        .success-box {
+            background: #d1fae5;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #10b981;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .info-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .info-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .steps-list {
+            counter-reset: step-counter;
+            list-style: none;
+            margin-left: 0;
+        }
+
+        .steps-list li {
+            counter-increment: step-counter;
+            margin-bottom: 15px;
+            padding-left: 40px;
+            position: relative;
+        }
+
+        .steps-list li:before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: #10b981;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+        }
+
+        .emoji {
+            font-size: 1.2em;
+            margin-right: 5px;
+        }
+
+        .example-box {
+            background: #fef3c7;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #f59e0b;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🌳 Decision Trees - Complete Guide</h1>
+
+        <div class="intro-box">
+            <p><strong>A tree-like model where internal nodes represent tests on features, branches represent outcomes,
+                    and leaves represent final predictions.</strong></p>
+        </div>
+
+        <div class="section">
+            <h2>📖 What is a Decision Tree?</h2>
+
+            <div class="definition-card">
+                <p>A Decision Tree is a <strong>supervised learning algorithm</strong> used for both classification and
+                    regression tasks.</p>
+                <p>It splits data into branches based on feature values to make predictions.</p>
+                <p>A supervised learning algorithm that creates a tree-like model of decisions based on feature values.
+                    It recursively splits data into subsets based on the most significant attributes.</p>
+            </div>
+
+            <div class="key-points">
+                <h4>Key Concepts:</h4>
+                <ul>
+                    <li>To decide the best split, it uses impurity measures like <strong>Entropy</strong>,
+                        <strong>Information Gain</strong>, and <strong>Gini Impurity</strong></li>
+                    <li>Entropy measures disorder</li>
+                    <li>Information Gain measures reduction in entropy after a split</li>
+                    <li>Gini Impurity measures how often a randomly chosen element would be misclassified</li>
+                </ul>
+            </div>
+
+            <pre><code>from sklearn.tree import DecisionTreeClassifier, plot_tree</code></pre>
+
+            <p><strong>Use Case:</strong> Classification (spam vs. not spam) or regression (predicting house prices)</p>
+        </div>
+
+        <div class="image-placeholder">
+            <img src="default.png" alt="Decision Tree Structure">
+        </div>
+
+        <div class="section">
+            <h2>1️⃣ Gini Impurity</h2>
+
+            <p>Gini Impurity checks how often a randomly selected sample would be mislabeled if assigned by class
+                probability.</p>
+
+            <p>It is computationally simple and used in tree-based classifiers.</p>
+
+            <p>It is <span class="highlight">computationally faster than entropy</span> and ensemble techniques use Gini
+                impurity.</p>
+
+            <div class="formula">
+                G(S) = 1 - Σ p<sub>i</sub><sup>2</sup>
+                <br><br>
+                <small>Where p<sub>i</sub> is probability of class i</small>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>2️⃣ Entropy</h2>
+
+            <p>Entropy measures uncertainty in a node's class distribution and originates from information theory.</p>
+
+            <p>It finds the purity of subset and it lies between 0 to 1.</p>
+
+            <div class="success-box">
+                <p><strong>Important:</strong> When we find the entropy = 0, then we need to stop the splitting node and
+                    that will be our final (leaf) node.</p>
+            </div>
+
+            <div class="formula">
+                H(S) = - Σ p<sub>i</sub> · log<sub>2</sub>(p<sub>i</sub>)
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>3️⃣ Information Gain</h2>
+
+            <p>Info gain tells you in what manner you can split the tree nodes.</p>
+
+            <p>It's the reduction in entropy after splitting a dataset on a feature.</p>
+
+            <div class="formula">
+                IG(S, A) = H(S) - Σ<sub>v∈Values(A)</sub> (|S<sub>v</sub>| / |S|) · H(S<sub>v</sub>)
+                <br><br>
+                <small>Where:</small><br>
+                <small>H(S) = entropy of the parent node (before split)</small><br>
+                <small>Weighted average of entropies of child nodes = Σ (|S<sub>v</sub>| / |S|) ·
+                    H(S<sub>v</sub>)</small><br>
+                <small>S<sub>v</sub> is after splitting node and S is total sample</small>
+                <br><br>
+                <strong>Information Gain = Parent entropy - Weighted average child entropy</strong>
+            </div>
+        </div>
+
+        <div class="image-placeholder">
+            <img src="default.png" alt="Information Gain Calculation">
+        </div>
+
+        <div class="section">
+            <h3>🧮 Solving Example:</h3>
+
+            <div class="example-box">
+                <p><strong>Given:</strong> Total sample = 9 + 5 = 14</p>
+                <p>H(f₁) = H(S) because it is head of tree</p>
+
+                <div class="formula">
+                    IG(S, f₁) = H(S) - (8/14) · H(f₂) - (6/14) · H(f₃)
+                    <br><br>
+                    IG(S, f₁) = 0.941 - (8/14) · 0.811 - (6/14) · 1
+                    <br><br>
+                    IG(S, f₁) ≈ 0.941 - 0.892 = 0.049
+                </div>
+
+                <p>In the second subset tree, calculate the info gain, whichever has higher value is considered for
+                    spanning tree further.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>💡 Practical Example:</h3>
+
+            <div class="example-box">
+                <p><strong>Suppose we have a dataset of 10 samples:</strong></p>
+                <ul>
+                    <li>6 are Positive (Yes)</li>
+                    <li>4 are Negative (No)</li>
+                </ul>
+
+                <h4>Entropy of the dataset:</h4>
+                <div class="formula">
+                    H(S) = - [(6/10) · log₂(6/10) + (4/10) · log₂(4/10)] ≈ 0.97
+                </div>
+
+                <h4>Gini Impurity:</h4>
+                <div class="formula">
+                    G(S) = 1 - [(6/10)² + (4/10)²] = 0.48
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⚙️ Criterion Parameter</h2>
+
+            <div class="key-points">
+                <p><strong>Note:</strong></p>
+                <ul>
+                    <li>Use <code>criterion="entropy"</code> → tree splits are chosen by Information Gain</li>
+                    <li>Use <code>criterion="gini"</code> → tree splits are chosen by Gini Impurity</li>
+                </ul>
+            </div>
+
+            <pre><code>DecisionTreeClassifier(criterion="entropy")</code></pre>
+        </div>
+
+        <div class="section">
+            <h2>📊 Comparison Table: Gini vs Entropy</h2>
+
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Scenario</th>
+                        <th>Gini Impurity</th>
+                        <th>Entropy</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Training Speed</strong></td>
+                        <td>Faster computation since it avoids log operations</td>
+                        <td>Slightly slower due to logarithmic calculations</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Split Behavior</strong></td>
+                        <td>Creates splits quickly, favoring dominant classes</td>
+                        <td>Produces more balanced node partitions</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Dataset Size</strong></td>
+                        <td>Efficient for large, high-dimensional datasets</td>
+                        <td>Useful for structured datasets with clear patterns</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Sensitivity to Distribution</strong></td>
+                        <td>Less sensitive to small probability changes</td>
+                        <td>More sensitive to subtle probability shifts</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Common Usage</strong></td>
+                        <td>Often default in libraries like CART</td>
+                        <td>Preferred when theoretical information matters</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="success-box">
+                <p><strong>✅ Takeaway:</strong></p>
+                <ul>
+                    <li>Use <strong>Gini</strong> when speed and efficiency matter (large datasets)</li>
+                    <li>Use <strong>Entropy</strong> when interpretability and sensitivity to class balance are
+                        important</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔢 Decision Tree Split For Numerical Features</h2>
+
+            <div class="warning-box">
+                <p>As our dataset increases with numerical inputs, our time complexity will automatically increase.</p>
+            </div>
+
+            <h3>🔧 Process</h3>
+
+            <ol class="steps-list">
+                <li>Sort the values of the numerical feature<br>
+                    <small>Example: Ages = [22, 25, 28, 30, 35, 40]</small>
+                </li>
+                <li>Generate candidate thresholds between consecutive values<br>
+                    <small>Thresholds are midpoints between sorted values</small><br>
+                    <small>Example: (22+25)/2 = 23.5, (25+28)/2 = 26.5, etc.</small>
+                </li>
+                <li>Evaluate each threshold:
+                    <ul>
+                        <li>Split the dataset into Left (≤ threshold) and Right (> threshold)</li>
+                        <li>Compute impurity (Entropy or Gini) for each side</li>
+                        <li>Calculate Information Gain (if using entropy) or Gini reduction</li>
+                    </ul>
+                </li>
+                <li>Choose the best threshold that maximizes Information Gain (or minimizes Gini)</li>
+            </ol>
+
+            <h3>🧮 Example</h3>
+
+            <div class="example-box">
+                <p><strong>Suppose we have a dataset with Age and target Play (Yes/No):</strong></p>
+
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Age</th>
+                            <th>Play</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>22</td>
+                            <td>No</td>
+                        </tr>
+                        <tr>
+                            <td>25</td>
+                            <td>Yes</td>
+                        </tr>
+                        <tr>
+                            <td>28</td>
+                            <td>Yes</td>
+                        </tr>
+                        <tr>
+                            <td>30</td>
+                            <td>No</td>
+                        </tr>
+                        <tr>
+                            <td>35</td>
+                            <td>Yes</td>
+                        </tr>
+                        <tr>
+                            <td>40</td>
+                            <td>No</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <p><strong>Candidate thresholds:</strong> 23.5, 26.5, 29, 32.5, 37.5</p>
+                <p>For each threshold, compute entropy of left/right groups.</p>
+                <p>Pick the threshold with highest Information Gain.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⚠️ Impact of Outliers on Decision Tree</h2>
+
+            <p>Decision Trees are more robust to outliers than linear models, but they can still overfit if outliers
+                force unnecessary splits.</p>
+
+            <p><strong>Best practice:</strong> prune the tree or preprocess data to handle extreme values.</p>
+
+            <h3>🛠 Mitigation Strategies</h3>
+
+            <ul>
+                <li><strong>Pruning:</strong> Limit tree depth or minimum samples per leaf to avoid overfitting to
+                    outliers</li>
+                <li><strong>Preprocessing:</strong> Remove or cap extreme values before training</li>
+                <li><strong>Robust Models:</strong> Use ensemble methods like Random Forests or Gradient Boosted Trees,
+                    which average across many trees and reduce outlier influence</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>❓ Impact of Missing Values on Decision Tree</h2>
+
+            <div class="warning-box">
+                <p>If a feature has missing values, the tree cannot directly compute entropy or Gini for those samples.
+                </p>
+                <p>This can lead to biased splits if missing values are ignored or treated incorrectly.</p>
+            </div>
+
+            <div class="key-points">
+                <ul>
+                    <li>By default, scikit-learn's <code>DecisionTreeClassifier</code> does not handle missing values
+                        natively</li>
+                    <li>If missing values appear in test data, the model may fail to classify those samples unless
+                        preprocessing is applied</li>
+                    <li>If missing values are imputed poorly (e.g., filling with mean), the tree may learn artificial
+                        patterns, causing overfitting or misleading splits</li>
+                </ul>
+            </div>
+
+            <h3>🛠 Strategies to Handle Missing Values</h3>
+
+            <div class="success-box">
+                <p><strong>Use Ensemble Trees:</strong></p>
+                <p>Algorithms like XGBoost, LightGBM, CatBoost handle missing values internally by learning default
+                    directions for missing data.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>✂️ Pruning Technique</h2>
+
+            <div class="definition-card">
+                <p><strong>Pruning</strong> is the process of reducing the size of a decision tree by removing sections
+                    of the tree that provide little or no predictive power.</p>
+                <p>The goal is to simplify the model, improve generalization, and avoid overfitting to noise or outliers
+                    in the training data.</p>
+                <p><strong>In short:</strong> Pruning = cutting back the tree to make it more robust.</p>
+            </div>
+
+            <h3>🛠 Types of Pruning</h3>
+
+            <div class="info-grid">
+                <div class="info-card">
+                    <h4>1. Pre-pruning (Early Stopping)</h4>
+                    <p>Stop growing the tree before it becomes too complex.</p>
+                    <p>Controlled by parameters like maximum depth, minimum samples per split, etc.</p>
+                </div>
+
+                <div class="info-card">
+                    <h4>2. Post-pruning (Reduced Error Pruning)</h4>
+                    <p>Grow the full tree first, then remove branches that don't improve performance on validation data.
+                    </p>
+                    <p>Less common in scikit-learn, but conceptually important.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>⚙️ Key Parameters in Scikit-learn for Pruning</h2>
+
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>max_depth</code></td>
+                        <td>Maximum depth of the tree (limits complexity)</td>
+                    </tr>
+                    <tr>
+                        <td><code>min_samples_split</code></td>
+                        <td>Minimum number of samples required to split a node</td>
+                    </tr>
+                    <tr>
+                        <td><code>min_samples_leaf</code></td>
+                        <td>Minimum number of samples required in a leaf node</td>
+                    </tr>
+                    <tr>
+                        <td><code>max_leaf_nodes</code></td>
+                        <td>Maximum number of leaf nodes allowed</td>
+                    </tr>
+                    <tr>
+                        <td><code>min_impurity_decrease</code></td>
+                        <td>A node is split only if impurity decreases by at least this value</td>
+                    </tr>
+                    <tr>
+                        <td><code>ccp_alpha</code></td>
+                        <td>Cost Complexity Pruning parameter (post-pruning). Higher values prune more aggressively</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="key-points">
+                <p><strong>Summary:</strong></p>
+                <ul>
+                    <li><strong>Pre-pruning parameters:</strong> max_depth, min_samples_split, min_samples_leaf,
+                        max_leaf_nodes</li>
+                    <li><strong>Post-pruning parameter:</strong> ccp_alpha (Cost Complexity Pruning)</li>
+                    <li>Choosing pruning parameters balances bias vs variance</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>💻 Implementation Example</h2>
+
+            <pre><code>from sklearn.datasets import load_iris
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+import matplotlib.pyplot as plt
+
+# Load dataset
+iris = load_iris()
+X, y = iris.data, iris.target
+
+# Decision Tree with pruning
+clf = DecisionTreeClassifier(
+    criterion="entropy",
+    max_depth=3,          # pre-pruning
+    min_samples_leaf=2,   # pre-pruning
+    ccp_alpha=0.01,       # post-pruning
+    random_state=42
+)
+clf.fit(X, y)</code></pre>
+
+            <div class="success-box">
+                <p><strong>Result:</strong></p>
+                <code>DecisionTreeClassifier(ccp_alpha=0.01, criterion='entropy', max_depth=3, min_samples_leaf=2, random_state=42)</code>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📊 Plot/Visualization the Decision Tree</h2>
+
+            <pre><code># Visualize pruned tree
+plt.figure(figsize=(10,6))
+plot_tree(clf, filled=True, feature_names=iris.feature_names, 
+          class_names=iris.target_names)
+plt.show()</code></pre>
+
+            <div class="image-placeholder">
+                <img src="default.png" alt="Decision Tree Visualization">
+            </div>
+
+            <h3>Export to PDF/PNG:</h3>
+
+            <pre><code>from sklearn.tree import export_graphviz
+import graphviz
+
+dot_data = export_graphviz(
+    clf, out_file=None,
+    feature_names=iris.feature_names,
+    class_names=iris.target_names,
+    filled=True, rounded=True,
+    special_characters=True
+)
+
+graph = graphviz.Source(dot_data)
+graph.render("decision_tree")  # saves as PDF/PNG</code></pre>
+        </div>
+
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support Vector Machines (SVM)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 15px;
+        }
+        
+        h2 {
+            color: #764ba2;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+            border-left: 5px solid #764ba2;
+            padding-left: 15px;
+        }
+        
+        h3 {
+            color: #667eea;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+        
+        .types-list {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .types-list ol {
+            margin-left: 20px;
+        }
+        
+        .types-list li {
+            margin: 10px 0;
+            font-weight: 600;
+        }
+        
+        .objectives {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .objective-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .definition-box {
+            background: #e8f4f8;
+            border-left: 5px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .formula {
+            background: #2d3748;
+            color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+        
+        .advantages {
+            background: #d4edda;
+            border-left: 5px solid #28a745;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .advantages ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        
+        .advantages li {
+            margin: 8px 0;
+        }
+        
+        .kernel-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        
+        .kernel-type {
+            background: white;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .image-placeholder {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .image-placeholder img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            height: 300px;
+        }
+        
+        .note-box {
+            background: #fff3e0;
+            border-left: 5px solid #ff9800;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .note-box strong {
+            color: #e65100;
+        }
+        
+        pre {
+            background: #2d3748;
+            color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        
+        code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            h2 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Support Vector Machines (SVM)</h1>
+        
+        <div class="types-list">
+            <h3>Support vector machine has two types:</h3>
+            <ol type="a">
+                <li>Support vector machine classifier</li>
+                <li>Support vector Regression</li>
+            </ol>
+        </div>
+        
+        <h2>Objectives</h2>
+        <div class="objectives">
+            <div class="objective-item">Support Vectors</div>
+            <div class="objective-item">Hyper Planes</div>
+            <div class="objective-item">Marginal Distance</div>
+            <div class="objective-item">Linear Separable</div>
+            <div class="objective-item">Non-Linear Separable</div>
+        </div>
+        
+        <h2>Definition</h2>
+        <div class="definition-box">
+            <p><strong>SVM is a classification algorithm that tries to find the best separating boundary between classes.</strong></p>
+            <p style="margin-top: 15px;">But unlike logistic regression or perceptron, SVM doesn't just find any boundary. It finds the <strong>maximum margin hyperplane</strong>.</p>
+            <p style="margin-top: 10px;"><strong>Where:</strong> Margin = distance between the hyperplane and the closest points (support vectors).</p>
+            <p style="margin-top: 10px;">When we create a hyperplane in SVM, it must pass through at least one of the nearest data points (features).</p>
+        </div>
+        
+        <h3>Why maximize margin?</h3>
+        <ul style="margin-left: 30px; margin-top: 10px;">
+            <li>Larger margin → better generalization</li>
+            <li>More robust to noise</li>
+            <li>Less Overfitting</li>
+        </ul>
+        
+        <div class="image-placeholder">
+            <img src="https://github.com/Upgradstudent/ModelDiagram/blob/main/support%20vector%20hyper%20plane.png?raw=true" alt="SVM Margin Illustration">
+        </div>
+        
+        <h2>Support Vectors?</h2>
+        <div class="definition-box">
+            <p><strong>Support Vectors</strong> are the data points that lie closest to the decision boundary (hyperplane).</p>
+            <p style="margin-top: 10px;">They are the points that touch the margin boundaries:</p>
+            <div class="formula">
+                Positive hyperplane: w<sup>T</sup>x + b = +1<br>
+                Negative hyperplane: w<sup>T</sup>x + b = -1
+            </div>
+            <p>These points are critical because they define the margin. If you removed them, the position of the hyperplane could change.</p>
+        </div>
+        
+        <h2>Marginal Distance</h2>
+        <p>Margin distance is the distance between the positive and negative hyperplanes.</p>
+        <p>It's not just "any distance," it's specifically the <strong>perpendicular distance</strong> between them, measured along the direction of the weight vector.</p>
+        <div class="formula">
+            The margin is the perpendicular distance between the +ve and -ve hyperplanes, equal to: 2/||w||
+        </div>
+        
+        <h2>Why SVM is Better Than Logistic Regression?</h2>
+        <div class="advantages">
+            <p><strong>Support Vector Machines (SVM)</strong> are often considered better than Logistic Regression for classification tasks because they maximize the margin between classes, handle non-linear boundaries with kernels, and are more robust to outliers.</p>
+            <p style="margin-top: 10px;">Logistic Regression is simpler and more interpretable, while Linear Regression isn't ideal for classification at all.</p>
+            
+            <h3 style="margin-top: 20px; color: #28a745;">Why SVM Can Be Better:</h3>
+            <ul>
+                <li><strong>Margin Maximization:</strong> SVM finds the hyperplane that maximizes the margin between classes, leading to better generalization on unseen data.</li>
+                <li><strong>Kernel Flexibility:</strong> With kernels, SVM can model complex, non-linear relationships that Logistic Regression or Linear Regression cannot handle without heavy feature engineering.</li>
+                <li><strong>Outlier Resistance:</strong> Logistic Regression tries to fit probabilities, making it sensitive to outliers. SVM focuses only on support vectors (critical boundary points), so it's less affected.</li>
+                <li><strong>Small Sample Efficiency:</strong> SVM often performs well even with limited training data, while Logistic Regression may underfit.</li>
+            </ul>
+        </div>
+        
+        <h2>What is Kernel and How It Implements in SVM?</h2>
+        <div class="kernel-box">
+            <p><strong>SVM Kernel changes the low dimension into high dimension of data points.</strong></p>
+            <p style="margin-top: 15px;">A kernel in SVM is a mathematical function that allows the algorithm to operate in a higher-dimensional space without explicitly transforming the data. This is called the <strong>kernel trick</strong>.</p>
+            <p style="margin-top: 10px;">A kernel is the mathematical engine that makes SVM flexible and powerful. By using the kernel trick, SVM can classify data that isn't linearly separable, making it far more versatile than simple linear models.</p>
+        </div>
+        
+        <h3>What is the Kernel Trick?</h3>
+        <p>In Support Vector Machines (SVM), the goal is to find a separating hyperplane between classes. Sometimes, data is not linearly separable in its original space (e.g., you can't draw a straight line to separate classes).</p>
+        <p style="margin-top: 10px;">The kernel trick is a mathematical shortcut that lets SVM operate in a higher-dimensional space without explicitly computing the transformation.</p>
+        <p style="margin-top: 10px;">Instead of mapping data points x into a higher-dimensional feature space φ(x), the kernel trick computes the dot product directly in that space:</p>
+        <div class="formula">
+            K(x, y) = φ(x)<sup>T</sup> φ(y)
+        </div>
+        <p>This avoids the computational cost of working in high dimensions.</p>
+        
+        <h2>Types of Kernels</h2>
+        
+        <div class="kernel-type">
+            <h3>1. Linear Kernel</h3>
+            <p>This is the simplest kernel and is equivalent to a linear SVM. It's suitable for linearly separable data. The kernel function is simply the dot product of the two input vectors:</p>
+            <div class="formula">
+                K(x, y) = x<sup>T</sup> y
+            </div>
+        </div>
+        
+        <div class="kernel-type">
+            <h3>2. Polynomial Kernel</h3>
+            <p>This kernel introduces non-linearity by raising the dot product of the input vectors to a certain power (degree). The kernel function is:</p>
+            <div class="formula">
+                K(x, y) = (x<sup>T</sup> y + r)<sup>d</sup>
+            </div>
+            <p>where r is a constant and d is the degree.</p>
+        </div>
+        
+        <div class="kernel-type">
+            <h3>3. Radial Basis Function (RBF) Kernel</h3>
+            <p>Also known as the <strong>Gaussian kernel</strong>, the RBF kernel is a popular choice for non-linear data. It maps data into an infinite-dimensional space. The kernel function is:</p>
+            <div class="formula">
+                K(x, y) = exp(-||x - y||<sup>2</sup> / (2 * sigma<sup>2</sup>))
+            </div>
+            <p>where sigma controls the width of the Gaussian function.</p>
+        </div>
+        
+        <div class="kernel-type">
+            <h3>4. Sigmoid Kernel</h3>
+            <p>This kernel is similar to a two-layer perceptron neural network. The kernel function is:</p>
+            <div class="formula">
+                K(x, y) = tanh(alpha * x<sup>T</sup> y + c)
+            </div>
+            <p>where alpha and c are constants.</p>
+        </div>
+        
+       
+        
+        <h2>Mathematics Behind SVM</h2>
+
+         <div class="image-placeholder">
+            <img src="https://github.com/Upgradstudent/ModelDiagram/blob/main/ChatGPT%20Image%20Dec%2020,%202025,%2012_13_19%20PM.png?raw=true" alt="Kernel Types Visualization">
+        </div>
+        
+        <h3>Geometry of Margins and Support Vectors</h3>
+        
+        <p><strong>Setup: Two margin hyperplanes and the decision boundary</strong></p>
+        <div class="formula">
+            w<sup>T</sup>x + b = +1  and  w<sup>T</sup>x + b = -1  are the margin hyperplanes.<br>
+            w<sup>T</sup>x + b = 0  is the decision boundary.
+        </div>
+        
+        <p style="margin-top: 20px;"><strong>Support vectors: Points on the margins</strong></p>
+        <p>Let x₁ lie on w<sup>T</sup>x + b = -1 and x₂ lie on w<sup>T</sup>x + b = +1.</p>
+        <p>Then w<sup>T</sup>x₁ + b = -1 and w<sup>T</sup>x₂ + b = +1.</p>
+        
+        <p style="margin-top: 20px;"><strong>Margin width from geometry:</strong></p>
+        <p>Subtract the two equations:</p>
+        <div class="formula">
+            w<sup>T</sup>(x₂ - x₁) = (+1) - (-1) = 2
+        </div>
+        
+        <p style="margin-top: 10px;">The perpendicular distance between the two margin hyperplanes is the projection of (x₂ - x₁) onto the unit normal w/||w||:</p>
+        <div class="formula">
+            Margin = (w<sup>T</sup> / ||w||) * (x₂ - x₁) = 2 / ||w||
+        </div>
+        
+        <h3 style="margin-top: 30px;">Optimization Problem</h3>
+        <div class="formula">
+            Minimize: (1/2) * ||w||<sup>2</sup><br><br>
+            Subject to: y<sub>i</sub>(w<sup>T</sup>x<sub>i</sub> + b) ≥ 1 for all i
+        </div>
+        
+        <p style="margin-top: 20px;"><strong>Where:</strong></p>
+        <ul style="margin-left: 30px;">
+            <li>x<sub>i</sub> = input features</li>
+            <li>y<sub>i</sub> ∈ {-1, +1} = class labels</li>
+            <li>w = weight vector</li>
+            <li>b = bias term</li>
+        </ul>
+        
+        <p style="margin-top: 20px;">This ensures that:</p>
+        <ul style="margin-left: 30px;">
+            <li>Positive samples lie on or beyond the hyperplane w<sup>T</sup>x + b = +1</li>
+            <li>Negative samples lie on or beyond the hyperplane w<sup>T</sup>x + b = -1</li>
+        </ul>
+        
+        <div class="formula" style="margin-top: 20px;">
+            Such that:<br><br>
+            w<sup>T</sup>x<sub>i</sub> + b ≥ +1,  if y<sub>i</sub> = +1<br>
+            w<sup>T</sup>x<sub>i</sub> + b ≤ -1,  if y<sub>i</sub> = -1
+        </div>
+        
+        <h3 style="margin-top: 30px;">Final Correct Formula (Hard Margin):</h3>
+        <div class="formula">
+            min<sub>w,b</sub> (1/2) * ||w||<sup>2</sup><br><br>
+            such that y<sub>i</sub>(w<sup>T</sup>x<sub>i</sub> + b) ≥ 1
+        </div>
+        
+        <div class="note-box">
+            <p><strong>Note:</strong> If your optimizer value is not greater than or equal to 1, it means your model is misclassified.</p>
+            <p style="margin-top: 10px;">It may provide overlapped hyperplanes, so to handle the overlapping issue we can customize our final equation like this:</p>
+        </div>
+        
+        <h3>Soft-Margin SVM (Non-separable Case)</h3>
+        <div class="formula">
+            min<sub>w,b,ξ</sub> (1/2) * ||w||<sup>2</sup> + C * Σ<sub>i=1 to n</sub> ξ<sub>i</sub><br><br>
+            Subject to constraints:<br>
+            y<sub>i</sub>(w<sup>T</sup>x<sub>i</sub> + b) ≥ 1 - ξ<sub>i</sub><br>
+            ξ<sub>i</sub> ≥ 0
+        </div>
+        
+        <p style="margin-top: 20px;"><strong>Where:</strong></p>
+        <ul style="margin-left: 30px;">
+            <li>ξ<sub>i</sub> = slack variables (allow margin violations) - Value of errors</li>
+            <li>C = regularization parameter controlling trade-off between margin size and misclassification - How many errors</li>
+        </ul>
+        
+        <div class="advantages" style="margin-top: 30px;">
+            <p>In SVM, to avoid overfitting, we choose a <strong>Soft Margin</strong> instead of a Hard one. We let some data points enter our margin intentionally (but we still penalize it) so that our classifier doesn't overfit on our training sample.</p>
+        </div>
+        
+        
+        <h2>How to Avoid Overfitting and Underfitting</h2>
+        <div class="definition-box">
+            <ul style="margin-left: 20px;">
+                <li>Use <strong>Soft Margin SVM</strong> with appropriate C parameter</li>
+                <li>Apply <strong>cross-validation</strong> to tune hyperparameters</li>
+                <li>Use appropriate <strong>kernel functions</strong> for your data</li>
+                <li>Regularize the model to prevent overfitting</li>
+                <li>Ensure sufficient training data</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
