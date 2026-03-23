@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Classification — Algorithms & Metrics</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+      display: flex;
+      justify-content: center;
+      color: #1f2937;
+    }
+
+    .wrapper {
+      max-width: 1100px;
+      width: 100%;
+      background: #ffffff;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 34px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 28px;
+    }
+
+    /* ── TABS ── */
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+
+    .tab-btn {
+      padding: 9px 28px;
+      border-radius: 20px;
+      border: 1.5px solid #667eea;
+      background: transparent;
+      color: #667eea;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      font-family: inherit;
+    }
+
+    .tab-btn:hover { background: #eef2ff; }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #ffffff;
+      border-color: transparent;
+      box-shadow: 0 4px 14px rgba(102, 126, 234, 0.35);
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ── SECTION CARD ── */
+    .section-card {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border-radius: 14px;
+      border-left: 5px solid #667eea;
+      border-top: 1px solid rgba(102, 126, 234, 0.1);
+      padding: 28px 26px 22px;
+    }
+
+    .section-card h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1e3a8a;
+      margin-bottom: 10px;
+    }
+
+    .goal-banner {
+      font-size: 13px;
+      padding: 10px 14px;
+      background: #e0e7ff;
+      border-left: 3px solid #667eea;
+      border-radius: 7px;
+      color: #3730a3;
+      font-weight: 500;
+      margin-bottom: 22px;
+    }
+
+    /* ── GRIDS ── */
+    .algo-grid,
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(265px, 1fr));
+      gap: 16px;
+    }
+
+    /* ── ALGORITHM CARD ── */
+    .algo-card {
+      background: #ffffff;
+      border-radius: 10px;
+      border: 1px solid rgba(102, 126, 234, 0.18);
+      padding: 18px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .algo-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(102, 126, 234, 0.14);
+      border-color: #667eea;
+    }
+
+    .algo-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1e3a8a;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .algo-name::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #667eea;
+      flex-shrink: 0;
+    }
+
+    .algo-type {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 9px;
+      border-radius: 10px;
+      background: #e0e7ff;
+      color: #3730a3;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+    }
+
+    .algo-desc {
+      font-size: 12.5px;
+      color: #4b5563;
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+
+    .formula-label {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #c0392b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 5px;
+    }
+
+    .formula-box {
+      background: linear-gradient(135deg, #eef2ff 0%, #f3e8ff 100%);
+      border: 1.5px solid #c7d2fe;
+      border-left: 4px solid #667eea;
+      border-radius: 7px;
+      padding: 11px 13px;
+      font-family: 'Fira Code', 'Courier New', monospace;
+      font-size: 11.5px;
+      color: #1e40af;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* ── METRIC CARD ── */
+    .metric-card {
+      background: #ffffff;
+      border-radius: 10px;
+      border: 1px solid rgba(102, 126, 234, 0.18);
+      padding: 18px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .metric-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(102, 126, 234, 0.14);
+      border-color: #667eea;
+    }
+
+    .metric-name {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: #1e3a8a;
+      margin-bottom: 6px;
+    }
+
+    .metric-desc {
+      font-size: 12.5px;
+      color: #4b5563;
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+
+    /* ── MEMORY BOX ── */
+    .memory-box {
+      background: linear-gradient(135deg, #eef2ff 0%, #f3e8ff 100%);
+      border: 2px solid #c7d2fe;
+      border-left: 4px solid #667eea;
+      border-radius: 8px;
+      padding: 13px 16px;
+      margin-top: 22px;
+    }
+
+    .memory-box .mem-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #4338ca;
+      margin-bottom: 5px;
+    }
+
+    .memory-box .mem-phrase {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1e40af;
+      font-style: italic;
+    }
+
+    /* ── BUTTONS ── */
+    .button-group {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 30px;
+    }
+
+    .btn-print {
+      padding: 12px 28px;
+      font-size: 15px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      font-family: inherit;
+    }
+
+    .btn-print:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-reset {
+      padding: 12px 28px;
+      font-size: 15px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      background: #e5e7eb;
+      color: #374151;
+      transition: all 0.3s ease;
+      font-family: inherit;
+    }
+
+    .btn-reset:hover {
+      background: #d1d5db;
+      transform: translateY(-2px);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 700px) {
+      .wrapper { padding: 22px 16px; }
+      h1 { font-size: 24px; }
+      .algo-grid, .metrics-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── PRINT ── */
+    @media print {
+      body { background: white; padding: 0; }
+      .wrapper { box-shadow: none; border-radius: 0; padding: 24px; max-width: 100%; }
+      h1 { -webkit-text-fill-color: unset; background: none; color: #1e3a8a; }
+      .tab-content { display: block !important; margin-bottom: 30px; }
+      .tabs, .button-group { display: none; }
+      .algo-card, .metric-card { page-break-inside: avoid; box-shadow: none; }
+      .section-card { background: #f8fafc; border: 1px solid #e2e8f0; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <h1>🔵 Classification — Algorithms &amp; Metrics</h1>
+  <p class="subtitle">All classification algorithms &amp; evaluation metrics with definitions and formulas</p>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('algorithms', this)">Algorithms</button>
+    <button class="tab-btn" onclick="switchTab('metrics', this)">Evaluation Metrics</button>
+  </div>
+
+  <!-- ══ ALGORITHMS ══ -->
+  <div id="tab-algorithms" class="tab-content active">
+    <div class="section-card">
+      <h2>Classification Algorithms</h2>
+      <div class="goal-banner">🎯 Predict a categorical label (class) from input features</div>
+      <div class="algo-grid" id="cls-grid"></div>
+      <div class="memory-box">
+        <div class="mem-label">💡 Memory Trick</div>
+        <div class="mem-phrase">"Lazy Kids Dance Rapidly, Singing Near Greenfields"</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ METRICS ══ -->
+  <div id="tab-metrics" class="tab-content">
+    <div class="section-card">
+      <h2>Classification Evaluation Metrics</h2>
+      <div class="goal-banner">🎯 Measure how well a classification model predicts class labels</div>
+      <div class="metrics-grid" id="cls-metrics-grid"></div>
+    </div>
+  </div>
+
+  <div class="button-group">
+    <button class="btn-print" onclick="window.print()">🖨️ Print This Sheet</button>
+    <button class="btn-reset" onclick="location.reload()">↻ Reset</button>
+  </div>
+
+</div>
+
+<script>
+  const clsAlgos = [
+    {
+      name: "Logistic Regression", type: "Linear",
+      desc: "Despite its name, it's a classification algorithm. It models the probability that an input belongs to a class using the sigmoid function. Works best for linearly separable data.",
+      formula: "P(y=1|x) = σ(wᵀx + b)\n\nσ(z) = 1 / (1 + e⁻ᶻ)\n\nLoss = -[y·log(ŷ) + (1-y)·log(1-ŷ)]"
+    },
+    {
+      name: "K-Nearest Neighbors (KNN)", type: "Instance-based",
+      desc: "Classifies a point based on the majority class of its K closest neighbors in feature space. No training phase — it memorizes the dataset.",
+      formula: "Class(x) = majority_vote(\n  k nearest neighbors of x\n)\n\nEuclidean Distance:\nd(a,b) = √Σ(aᵢ - bᵢ)²"
+    },
+    {
+      name: "Decision Tree Classifier", type: "Tree-based",
+      desc: "Splits data recursively using feature thresholds to maximize class purity at each node. The split criterion is Gini Impurity or Entropy (Information Gain).",
+      formula: "Gini Impurity:\nG = 1 - Σ pᵢ²\n\nEntropy:\nH = -Σ pᵢ · log₂(pᵢ)\n\nInfo Gain = H(parent) - Σ wᵢ·H(childᵢ)"
+    },
+    {
+      name: "Random Forest Classifier", type: "Ensemble",
+      desc: "Builds multiple decision trees on random subsets of data and features (bagging), then aggregates predictions by majority vote. Reduces overfitting vs. a single tree.",
+      formula: "Prediction = majority_vote(\n  {Tree₁(x), Tree₂(x), ..., Treeₙ(x)}\n)\n\nEach tree trained on bootstrap sample\nwith random subset of features"
+    },
+    {
+      name: "Support Vector Machine (SVM)", type: "Margin-based",
+      desc: "Finds the hyperplane that maximizes the margin between classes. Uses kernel functions to handle non-linearly separable data by mapping to higher dimensions.",
+      formula: "Decision: f(x) = wᵀx + b\n\nObjective: min ½‖w‖²\nSubject to: yᵢ(wᵀxᵢ + b) ≥ 1\n\nRBF Kernel:\nK(x,z) = exp(-γ‖x-z‖²)"
+    },
+    {
+      name: "Naive Bayes", type: "Probabilistic",
+      desc: "Applies Bayes' theorem assuming all features are conditionally independent given the class. Fast and works well with high-dimensional text data.",
+      formula: "P(y|x) = P(y)·P(x|y) / P(x)\n\nNaive independence:\nP(x|y) = Π P(xᵢ|y)\n\nPredict: argmax_y P(y)·Π P(xᵢ|y)"
+    },
+    {
+      name: "Neural Networks", type: "Deep Learning",
+      desc: "Stacked layers of neurons that learn hierarchical representations. Each neuron applies a weighted sum followed by an activation function. Trained via backpropagation.",
+      formula: "Forward: aˡ = g(Wˡ·aˡ⁻¹ + bˡ)\n\nReLU: g(z) = max(0, z)\nSoftmax: eᶻⁱ / Σeᶻʲ\n\nBackprop:\nW ← W - α · ∂L/∂W"
+    },
+    {
+      name: "Gradient Boosting Classifier", type: "Ensemble",
+      desc: "Builds trees sequentially where each new tree corrects the residual errors of the previous ensemble. XGBoost, LightGBM, and CatBoost are popular implementations.",
+      formula: "Fₘ(x) = Fₘ₋₁(x) + η·hₘ(x)\n\nResiduals:\nrᵢ = -∂L(yᵢ, Fₘ₋₁(xᵢ)) / ∂Fₘ₋₁\n\nη = learning rate (shrinkage)"
+    }
+  ];
+
+  const clsMetrics = [
+    {
+      name: "Accuracy",
+      desc: "The fraction of all predictions that are correct. Misleading when classes are imbalanced — a model predicting the majority class always has high accuracy.",
+      formula: "Accuracy = (TP + TN) / (TP + TN + FP + FN)\n\nRange: [0, 1]   Higher = better"
+    },
+    {
+      name: "Precision",
+      desc: "Of all instances predicted as positive, how many are actually positive? High precision = fewer false alarms. Important when false positives are costly (e.g. spam filters).",
+      formula: "Precision = TP / (TP + FP)\n\nTP = True Positives\nFP = False Positives\n\nRange: [0, 1]   Higher = better"
+    },
+    {
+      name: "Recall (Sensitivity / TPR)",
+      desc: "Of all actual positive instances, how many were correctly detected? Critical when false negatives are costly (e.g. cancer screening, fraud detection).",
+      formula: "Recall = TP / (TP + FN)\n\nFN = False Negatives\n\nAlso: Sensitivity / True Positive Rate\nRange: [0, 1]   Higher = better"
+    },
+    {
+      name: "F1-Score",
+      desc: "The harmonic mean of Precision and Recall. Balanced metric for imbalanced datasets where both false positives and false negatives matter.",
+      formula: "F1 = 2 × (Precision × Recall)\n         / (Precision + Recall)\n\nHarmonic mean penalizes\nimbalance between P & R\n\nRange: [0, 1]   Higher = better"
+    },
+    {
+      name: "Confusion Matrix",
+      desc: "A table showing actual vs. predicted classes across all categories. Reveals which classes the model confuses. Foundation for Precision, Recall, F1, and Accuracy.",
+      formula: "           Pred +   Pred -\nActual +  |  TP   |   FN  |\nActual -  |  FP   |   TN  |\n\nDiagonal = correct predictions\nOff-diag  = types of errors"
+    },
+    {
+      name: "ROC-AUC Score",
+      desc: "Area Under the ROC Curve. ROC plots TPR vs FPR at every decision threshold. AUC=1 is perfect; AUC=0.5 is random. Threshold-independent and class-imbalance robust.",
+      formula: "TPR = TP / (TP + FN)   ← y-axis\nFPR = FP / (FP + TN)   ← x-axis\n\nAUC = ∫₀¹ TPR d(FPR)\n\nAUC = 0.5 → random\nAUC = 1.0 → perfect"
+    },
+    {
+      name: "Log Loss (Cross-Entropy)",
+      desc: "Penalizes confident wrong predictions heavily. Measures uncertainty of probabilistic predictions. Used as the training loss in logistic regression and neural networks.",
+      formula: "Log Loss =\n  -1/n · Σ[y·log(ŷ) + (1-y)·log(1-ŷ)]\n\nyᵢ = true label (0 or 1)\nŷᵢ = predicted probability\nRange: [0, ∞)   Lower = better"
+    },
+    {
+      name: "Matthews Correlation Coefficient",
+      desc: "A single balanced metric for binary classification that accounts for all four cells of the confusion matrix. Works well even with severe class imbalance.",
+      formula: "MCC =\n  (TP·TN - FP·FN) /\n  √((TP+FP)(TP+FN)(TN+FP)(TN+FN))\n\nRange: [-1, 1]\n  +1 = perfect   0 = random   -1 = inverse"
+    }
+  ];
+
+  function renderAlgos(data, wrapperId) {
+    const grid = document.getElementById(wrapperId);
+    data.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'algo-card';
+      card.innerHTML = `
+        <div class="algo-name">${item.name}</div>
+        <span class="algo-type">${item.type}</span>
+        <div class="algo-desc">${item.desc}</div>
+        <div class="formula-label">📐 Formula / Equation</div>
+        <div class="formula-box">${item.formula}</div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  function renderMetrics(data, wrapperId) {
+    const grid = document.getElementById(wrapperId);
+    data.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'metric-card';
+      card.innerHTML = `
+        <div class="metric-name">${item.name}</div>
+        <div class="metric-desc">${item.desc}</div>
+        <div class="formula-label">📐 Formula / Equation</div>
+        <div class="formula-box">${item.formula}</div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  function initSupervisedPage() {
+  renderAlgos(regAlgos, 'reg-grid');
+  renderMetrics(regMetrics, 'reg-metrics-grid');
+}
+
+</script>
+</body>
+</html>
