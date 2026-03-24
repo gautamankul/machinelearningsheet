@@ -1,0 +1,1220 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reinforcement Learning — Algorithms & Metrics</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --ink: #0e0e11;
+        --muted: #d7d7e4;
+        --muted2: #e7e7ee;
+        --line: rgba(255, 255, 255, 0.07);
+        /* RL = orange/ember palette */
+        --ember: #ff8c42;
+        --ember-l: #ffb380;
+        --ember-d: #a04800;
+        --red: #ff4f4f;
+        --green: #38e07b;
+        --cyan: #1de9d4;
+        --sky: #5bc8ff;
+        --card: #14141a;
+        --card-h: #1a1a24;
+      }
+
+      .wrapper {
+        position: relative;
+        z-index: 1;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 72px 32px 96px;
+        background: linear-gradient(90deg in oklab, blue, red);
+      }
+
+      /* ── HEADER ── */
+      .header {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: end;
+        gap: 32px;
+        margin-bottom: 80px;
+        padding-bottom: 40px;
+        border-bottom: 1px solid var(--line);
+        position: relative;
+      }
+
+      .header::after {
+        content: "";
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        width: 120px;
+        height: 2px;
+        background: linear-gradient(90deg, var(--ember), transparent);
+      }
+
+      .header-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--ember-l);
+        margin-bottom: 20px;
+      }
+
+      .header-badge::before {
+        content: "";
+        display: block;
+        width: 24px;
+        height: 1px;
+        background: var(--ember-l);
+      }
+
+      h1 {
+        font-family: "Playfair Display", serif;
+        font-size: clamp(38px, 6vw, 78px);
+        font-weight: 900;
+        line-height: 0.95;
+        letter-spacing: -2px;
+        color: #fff;
+      }
+
+      h1 .accent {
+        font-style: italic;
+        color: var(--ember-l);
+      }
+
+      .header-right {
+        text-align: right;
+        padding-bottom: 8px;
+      }
+
+      .header-desc {
+        font-size: 13px;
+        color: var(--muted2);
+        line-height: 1.7;
+        max-width: 220px;
+        text-align: right;
+      }
+
+      .header-stats {
+        display: flex;
+        gap: 24px;
+        justify-content: flex-end;
+        margin-top: 16px;
+      }
+
+      .stat {
+        text-align: center;
+      }
+
+      .stat-num {
+        font-family: "Playfair Display", serif;
+        font-size: 28px;
+        font-weight: 700;
+        color: #fff;
+        line-height: 1;
+      }
+
+      .stat-label {
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+
+      /* ── CATEGORY STRIP ── */
+      .cat-nav {
+        display: flex;
+        gap: 2px;
+        margin-bottom: 64px;
+      }
+
+      .cat-tab {
+        flex: 1;
+        padding: 18px 16px;
+        background: var(--card);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .cat-tab::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+      }
+
+      .cat-tab.mf::before {
+        background: linear-gradient(
+          90deg,
+          rgba(255, 140, 66, 0.85),
+          transparent
+        );
+      }
+      .cat-tab.mb::before {
+        background: linear-gradient(
+          90deg,
+          rgba(91, 200, 255, 0.75),
+          transparent
+        );
+      }
+
+      .cat-tab-label {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+
+      .cat-tab-title {
+        font-family: "Playfair Display", serif;
+        font-size: 17px;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 6px;
+      }
+
+      .cat-tab-sub {
+        font-size: 11px;
+        color: var(--muted2);
+        line-height: 1.5;
+      }
+
+      .cat-tag {
+        display: inline-block;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        padding: 2px 10px;
+        border-radius: 2px;
+        margin-top: 8px;
+      }
+
+      .cat-tag.e {
+        background: rgba(255, 140, 66, 0.1);
+        color: var(--ember-l);
+      }
+      .cat-tag.mb {
+        background: rgba(91, 200, 255, 0.1);
+        color: var(--sky);
+      }
+
+      /* ── SECTION ── */
+      .section {
+        margin-bottom: 80px;
+      }
+
+      .section-header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        margin-bottom: 32px;
+      }
+
+      .section-title {
+        font-family: "Playfair Display", serif;
+        font-size: 32px;
+        font-weight: 700;
+        color: #fff;
+        letter-spacing: -0.5px;
+      }
+
+      .section-tag {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--muted);
+        border: 1px solid var(--line);
+        padding: 4px 14px;
+        border-radius: 2px;
+      }
+
+      .goal-line {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        color: var(--muted2);
+        text-transform: uppercase;
+        margin-bottom: 28px;
+      }
+
+      .goal-line::before {
+        content: "";
+        display: block;
+        width: 3px;
+        height: 14px;
+        border-radius: 2px;
+        flex-shrink: 0;
+      }
+
+      .goal-line.mf::before {
+        background: var(--ember);
+      }
+      .goal-line.mb::before {
+        background: var(--sky);
+      }
+      .goal-line.key::before {
+        background: var(--green);
+      }
+      .goal-line.eval::before {
+        background: var(--cyan);
+      }
+
+      /* ── GRID ── */
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2px;
+      }
+
+      /* ── CARD ── */
+      .card {
+        background: var(--card);
+        padding: 28px 26px 24px;
+        position: relative;
+        overflow: hidden;
+        transition: background 0.2s ease;
+        cursor: default;
+      }
+
+      .card:hover {
+        background: var(--card-h);
+      }
+
+      .card::before {
+        content: attr(data-num);
+        position: absolute;
+        top: 16px;
+        right: 20px;
+        font-family: "Playfair Display", serif;
+        font-size: 64px;
+        font-weight: 900;
+        color: rgba(255, 255, 255, 0.03);
+        line-height: 1;
+        pointer-events: none;
+      }
+
+      /* accent bars */
+      .card.value::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          rgba(255, 140, 66, 0.8),
+          transparent
+        );
+      }
+      .card.policy::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(90deg, rgba(255, 79, 79, 0.7), transparent);
+      }
+      .card.ac::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          rgba(255, 140, 66, 0.5),
+          rgba(255, 79, 79, 0.4),
+          transparent
+        );
+      }
+      .card.plan::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          rgba(91, 200, 255, 0.7),
+          transparent
+        );
+      }
+      .card.modlearn::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          rgba(91, 200, 255, 0.5),
+          rgba(29, 233, 212, 0.4),
+          transparent
+        );
+      }
+      .card.concept::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          rgba(56, 224, 123, 0.6),
+          transparent
+        );
+      }
+      .card.eval-c::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          rgba(29, 233, 212, 0.6),
+          transparent
+        );
+      }
+
+      .card-type {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        font-weight: 500;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--ember-d);
+        margin-bottom: 10px;
+      }
+
+      .card-type.t-sky {
+        color: #1a5a7a;
+      }
+      .card-type.t-green {
+        color: #1a6a40;
+      }
+      .card-type.t-cyan {
+        color: #1a6a60;
+      }
+      .card-type.t-red {
+        color: #8a2020;
+      }
+
+      .card-name {
+        font-family: "Playfair Display", serif;
+        font-size: 18px;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 12px;
+        letter-spacing: -0.3px;
+        line-height: 1.25;
+      }
+
+      .card-desc {
+        font-size: 12px;
+        color: var(--muted2);
+        line-height: 1.75;
+        margin-bottom: 20px;
+        font-weight: 400;
+      }
+
+      .formula-header {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        font-weight: 500;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 8px;
+      }
+
+      .formula-header::before {
+        font-size: 13px;
+      }
+      .formula-header.fe::before {
+        content: "ƒ";
+        color: var(--ember-l);
+      }
+      .formula-header.fs::before {
+        content: "ƒ";
+        color: var(--sky);
+      }
+      .formula-header.fg::before {
+        content: "ƒ";
+        color: var(--green);
+      }
+      .formula-header.fc::before {
+        content: "∑";
+        color: var(--cyan);
+      }
+
+      .formula {
+        background: #0c0c10;
+        border: 1px solid rgba(255, 140, 66, 0.12);
+        border-left: 2px solid var(--ember);
+        border-radius: 0 4px 4px 0;
+        padding: 14px 16px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: #ffc89a;
+        line-height: 1.8;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      .formula.fsky {
+        border-left-color: var(--sky);
+        color: #a8d8ff;
+        border-color: rgba(91, 200, 255, 0.12);
+      }
+      .formula.fgrn {
+        border-left-color: var(--green);
+        color: #a0f0c0;
+        border-color: rgba(56, 224, 123, 0.12);
+      }
+      .formula.fcyn {
+        border-left-color: var(--cyan);
+        color: #aad8d4;
+        border-color: rgba(29, 233, 212, 0.12);
+      }
+
+      .range-line {
+        display: flex;
+        justify-content: space-between;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9.5px;
+        color: var(--muted);
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(255, 255, 255, 0.04);
+      }
+
+      .range-line .good {
+        color: var(--green);
+      }
+      .range-line .caution {
+        color: var(--ember);
+      }
+      .range-line .sky {
+        color: var(--sky);
+      }
+
+      /* ── RL LOOP DIAGRAM ── */
+      .rl-loop {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        margin-bottom: 48px;
+        flex-wrap: wrap;
+      }
+
+      .loop-box {
+        background: var(--card);
+        border: 1px solid var(--line);
+        padding: 19px 55px;
+        text-align: center;
+        position: relative;
+        min-width: 130px;
+      }
+
+      .loop-box::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+      }
+
+      .loop-box.agent::before {
+        background: linear-gradient(90deg, var(--ember), transparent);
+      }
+      .loop-box.env::before {
+        background: linear-gradient(90deg, var(--sky), transparent);
+      }
+      .loop-box.state::before {
+        background: linear-gradient(90deg, var(--green), transparent);
+      }
+      .loop-box.reward::before {
+        background: linear-gradient(90deg, var(--cyan), transparent);
+      }
+
+      .loop-label {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+
+      .loop-title {
+        font-family: "Playfair Display", serif;
+        font-size: 15px;
+        font-weight: 700;
+        color: #fff;
+      }
+
+      .loop-arrow {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        color: var(--muted);
+        padding: 0 6px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .loop-arrow span {
+        font-size: 9px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      /* ── MEMORY BOX ── */
+      .memory {
+        margin-top: 32px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 24px;
+        border: 1px solid rgba(255, 140, 66, 0.2);
+        background: linear-gradient(
+          135deg,
+          rgba(255, 140, 66, 0.04),
+          transparent
+        );
+        padding: 24px 28px;
+        position: relative;
+      }
+
+      .memory::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 40px;
+        height: 2px;
+        background: var(--ember);
+      }
+
+      .mem-label {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--ember-l);
+        margin-bottom: 8px;
+      }
+
+      .mem-phrase {
+        font-family: "Playfair Display", serif;
+        font-style: italic;
+        font-size: 18px;
+        font-weight: 700;
+        color: #fff;
+        letter-spacing: -0.3px;
+      }
+
+      .mem-sub {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 6px;
+      }
+      .mem-icon {
+        font-size: 36px;
+        opacity: 0.6;
+      }
+
+      /* ── DIVIDER ── */
+      .hr {
+        height: 1px;
+        background: var(--line);
+        margin: 0 0 64px;
+        position: relative;
+      }
+
+      .hr::before {
+        content: attr(data-label);
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: var(--ink);
+        padding: 0 16px;
+        font-family: "Playfair Display", serif;
+        font-size: 13px;
+        color: var(--muted);
+        letter-spacing: 3px;
+      }
+
+      /* ── FOOTER ── */
+      .footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 32px;
+        border-top: 1px solid var(--line);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        color: var(--muted);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+
+      .footer-dots {
+        display: flex;
+        gap: 6px;
+      }
+      .footer-dot {
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: var(--ember);
+        opacity: 0.4;
+      }
+
+      /* ── RESPONSIVE ── */
+      @media (max-width: 720px) {
+        .wrapper {
+          padding: 40px 16px 64px;
+        }
+        .header {
+          grid-template-columns: 1fr;
+        }
+        .header-right {
+          text-align: left;
+        }
+        .header-stats {
+          justify-content: flex-start;
+        }
+        .header-desc {
+          text-align: left;
+          max-width: 100%;
+        }
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        .section-header {
+          flex-direction: column;
+          gap: 10px;
+        }
+        .memory {
+          grid-template-columns: 1fr;
+        }
+        .mem-icon {
+          display: none;
+        }
+        .footer {
+          flex-direction: column;
+          gap: 12px;
+        }
+        .cat-nav {
+          flex-direction: column;
+        }
+        .rl-loop {
+          flex-direction: column;
+        }
+      }
+
+      @media print {
+        body {
+          background: #fff;
+          color: #111;
+        }
+        .card,
+        .formula {
+          background: #f9f9f9 !important;
+          border-color: #ddd !important;
+        }
+        .card-name,
+        h1,
+        .section-title {
+          color: #111 !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <!-- HEADER -->
+      <div class="header">
+        <h5>Reinforcement Learning</h5>
+        <p>
+          Learn how agents can learn optimal behaviour through trial-and-error
+          interactions with their environment.
+        </p>
+      </div>
+
+      <!-- RL INTERACTION LOOP -->
+      <div class="rl-loop">
+        <div class="loop-box agent">
+          <div class="loop-label">Learner</div>
+          <div class="loop-title">Agent</div>
+        </div>
+        <div class="loop-arrow">
+          <span>Action aₜ</span>
+          →
+        </div>
+        <div class="loop-box env">
+          <div class="loop-label">World</div>
+          <div class="loop-title">Environment</div>
+        </div>
+        <div class="loop-arrow">
+          ←
+          <span>State sₜ₊₁</span>
+        </div>
+        <div class="loop-box state">
+          <div class="loop-label">Observation</div>
+          <div class="loop-title">State sₜ</div>
+        </div>
+        <div class="loop-arrow">
+          ←
+          <span>Reward rₜ</span>
+        </div>
+        <div class="loop-box reward">
+          <div class="loop-label">Signal</div>
+          <div class="loop-title">Reward rₜ</div>
+        </div>
+      </div>
+
+      <!-- CATEGORY STRIP -->
+      <div class="cat-nav">
+        <div class="cat-tab mf">
+          <div class="cat-tab-label">Category 01</div>
+          <div class="cat-tab-title">Model-Free Learning</div>
+          <div class="cat-tab-sub">
+            Learns directly from interaction with the environment. No internal
+            model of transitions or rewards. Slower but broadly applicable.
+          </div>
+          <span class="cat-tag e"
+            >Value-Based · Policy-Based · Actor-Critic</span
+          >
+        </div>
+        <div class="cat-tab mb">
+          <div class="cat-tab-label">Category 02</div>
+          <div class="cat-tab-title">Model-Based Learning</div>
+          <div class="cat-tab-sub">
+            Builds an internal model of the environment (transitions + rewards)
+            and uses it for planning and policy improvement.
+          </div>
+          <span class="cat-tag mb">Planning · Model Learning</span>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════
+       SECTION 1 — MODEL-FREE
+  ══════════════════════════ -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">Model-Free Methods</h2>
+          <span class="section-tag"
+            >No Environment Model · Learn from Experience</span
+          >
+        </div>
+        <div class="goal-line mf">
+          Learn optimal behaviour directly from environment interactions
+        </div>
+
+        <div class="grid">
+          <!-- Q-Learning -->
+          <div class="card value" data-num="01">
+            <div class="card-type">Value-Based · Off-Policy</div>
+            <div class="card-name">Q-Learning</div>
+            <div class="card-desc">
+              Learns the optimal action-value function Q*(s,a) by bootstrapping
+              from the max future Q-value. Off-policy — learns optimal policy
+              regardless of which actions are taken during exploration.
+            </div>
+            <div class="formula-header fe">Formula</div>
+            <div class="formula">
+              Q(s,a) ← Q(s,a) + α·[target − Q(s,a)] target = r + γ · max_{a'}
+              Q(s',a') α = learning rate γ = discount factor Greedy policy: π(s)
+              = argmax_a Q(s,a)
+            </div>
+          </div>
+
+          <!-- SARSA -->
+          <div class="card value" data-num="02">
+            <div class="card-type">Value-Based · On-Policy</div>
+            <div class="card-name">SARSA</div>
+            <div class="card-desc">
+              On-policy TD control. Updates Q using the action actually taken by
+              the current policy (not the greedy max). More conservative than
+              Q-Learning — safer in risky environments.
+            </div>
+            <div class="formula-header fe">Formula</div>
+            <div class="formula">
+              Q(s,a) ← Q(s,a) + α·[target − Q(s,a)] target = r + γ · Q(s', a')
+              a' sampled from current policy π (not greedy max — key difference
+              from Q-Learning)
+            </div>
+          </div>
+
+          <!-- DQN -->
+          <div class="card value" data-num="03">
+            <div class="card-type">Value-Based · Deep RL</div>
+            <div class="card-name">DQN — Deep Q-Network</div>
+            <div class="card-desc">
+              Extends Q-Learning with a neural network approximator for Q(s,a).
+              Uses experience replay and a separate target network to stabilize
+              training. Foundation of modern deep RL.
+            </div>
+            <div class="formula-header fe">Formula</div>
+            <div class="formula">
+              Loss = E[(r + γ·max_{a'} Q̂(s',a';θ⁻) − Q(s,a;θ))²] θ⁻ = target
+              network params (frozen) θ = online network params Replay buffer:
+              sample random minibatch
+            </div>
+          </div>
+
+          <!-- Policy Gradient -->
+          <div class="card policy" data-num="04">
+            <div class="card-type t-red">Policy-Based</div>
+            <div class="card-name">Policy Gradient (REINFORCE)</div>
+            <div class="card-desc">
+              Directly optimizes the policy π_θ by ascending the gradient of
+              expected cumulative reward. No value function needed. High
+              variance — usually paired with a baseline to reduce variance.
+            </div>
+            <div class="formula-header fe">Formula</div>
+            <div class="formula">
+              Objective: J(θ) = E[Σ rₜ] Gradient: ∇J(θ) = E[Σ ∇log π_θ(aₜ|sₜ) ·
+              Gₜ] Gₜ = Σ_{k=t} γ^(k−t) · rₖ (return) Update: θ ← θ + α · ∇J(θ)
+            </div>
+          </div>
+
+          <!-- A2C / A3C -->
+          <div class="card ac" data-num="05">
+            <div class="card-type">Actor-Critic</div>
+            <div class="card-name">A2C / A3C</div>
+            <div class="card-desc">
+              Combines a policy network (Actor) and a value network (Critic).
+              The Critic reduces variance by replacing raw returns with
+              advantage estimates. A3C runs parallel workers asynchronously.
+            </div>
+            <div class="formula-header fe">Formula</div>
+            <div class="formula">
+              Actor update: ∇J(θ) = E[∇log π_θ(a|s) · A(s,a)] Advantage: A(s,a)
+              = Q(s,a) − V(s) ≈ r + γV(s') − V(s) (TD error) Critic loss: (r +
+              γV(s') − V(s))²
+            </div>
+          </div>
+
+          <!-- PPO -->
+          <div class="card policy" data-num="06">
+            <div class="card-type t-red">Policy-Based · Clip</div>
+            <div class="card-name">PPO — Proximal Policy Optimization</div>
+            <div class="card-desc">
+              Improves upon TRPO by clipping the policy update ratio to prevent
+              destructively large updates. State-of-the-art for continuous
+              control, robotics, and game playing environments.
+            </div>
+            <div class="formula-header fe">Formula</div>
+            <div class="formula">
+              L_CLIP(θ) = E[min(rₜ·Â, clip(rₜ, 1−ε, 1+ε)·Â)] rₜ = π_θ(a|s) /
+              π_θ_old(a|s) Â = advantage estimate ε = clip range (typically
+              0.1–0.2)
+            </div>
+          </div>
+        </div>
+
+        <!-- Memory -->
+        <div class="memory">
+          <div>
+            <div class="mem-label">Mnemonic · Model-Free Algorithms</div>
+            <div class="mem-phrase">
+              "Quite Simply, Deep Policies Always Produce Results"
+            </div>
+            <div class="mem-sub">
+              Q-Learning · SARSA · DQN · Policy Gradient · A2C/A3C · PPO
+            </div>
+          </div>
+          <div class="mem-icon">💡</div>
+        </div>
+      </section>
+
+      <div class="hr" data-label="II"></div>
+
+      <!-- ══════════════════════════
+       SECTION 2 — MODEL-BASED
+  ══════════════════════════ -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">Model-Based Methods</h2>
+          <span class="section-tag">Environment Model · Planning</span>
+        </div>
+        <div class="goal-line mb">
+          Use or learn a model of the environment to plan ahead
+        </div>
+
+        <div class="grid">
+          <!-- Dyna-Q -->
+          <div class="card plan" data-num="01">
+            <div class="card-type t-sky">Planning + Learning</div>
+            <div class="card-name">Dyna-Q</div>
+            <div class="card-desc">
+              Integrates model-free Q-Learning with model-based planning. After
+              each real experience, Dyna-Q performs k simulated Q-Learning
+              updates using its learned environment model.
+            </div>
+            <div class="formula-header fs">Formula</div>
+            <div class="formula fsky">
+              Real experience: Q-Learning update Model: (s,a) → (s', r) learned
+              Planning loop (k times): 1. Sample (s,a) from memory 2. Simulate:
+              (s',r) = Model(s,a) 3. Q(s,a) ← Q(s,a) + α·[r+γ·max Q(s',·) −
+              Q(s,a)]
+            </div>
+          </div>
+
+          <!-- World Models -->
+          <div class="card modlearn" data-num="02">
+            <div class="card-type t-sky">Model Learning · Deep</div>
+            <div class="card-name">World Models / MBPO</div>
+            <div class="card-desc">
+              Learns a neural network model of the environment dynamics. Uses
+              the model to generate synthetic rollouts for policy training,
+              achieving high sample efficiency.
+            </div>
+            <div class="formula-header fs">Formula</div>
+            <div class="formula fsky">
+              Learn: f_θ(sₜ, aₜ) ≈ P(sₜ₊₁ | sₜ, aₜ) Plan / Imagine: sₜ₊₁ ~
+              f_θ(sₜ, aₜ) Policy trained on model rollouts: π* = argmax_π
+              E_model[Σ γᵗ rₜ]
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="hr" data-label="III"></div>
+
+      <!-- ══════════════════════════
+       SECTION 3 — KEY CONCEPTS
+  ══════════════════════════ -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">Core RL Concepts</h2>
+          <span class="section-tag">Foundations · Terminology</span>
+        </div>
+        <div class="goal-line key">
+          Fundamental building blocks underlying all RL algorithms
+        </div>
+
+        <div class="grid">
+          <!-- Bellman Equation -->
+          <div class="card concept" data-num="→">
+            <div class="card-type t-green">Value Functions</div>
+            <div class="card-name">Bellman Equation</div>
+            <div class="card-desc">
+              Recursive decomposition of value functions. States that the value
+              of a state equals the immediate reward plus the discounted value
+              of the next state. Foundation of all TD methods.
+            </div>
+            <div class="formula-header fg">Formula</div>
+            <div class="formula fgrn">
+              State value: V(s) = E[r + γ·V(s') | s] Action value: Q(s,a) = E[r
+              + γ·max_{a'} Q(s',a') | s,a] Optimal: V*(s) = max_a Q*(s,a)
+            </div>
+          </div>
+
+          <!-- Exploration vs Exploitation -->
+          <div class="card concept" data-num="→">
+            <div class="card-type t-green">Policy Strategy</div>
+            <div class="card-name">Exploration vs Exploitation</div>
+            <div class="card-desc">
+              Core RL tradeoff — exploit known high-reward actions vs. explore
+              unknown actions that might be better. ε-greedy balances both: take
+              random action with probability ε, greedy otherwise.
+            </div>
+            <div class="formula-header fg">Formula</div>
+            <div class="formula fgrn">
+              ε-Greedy policy: π(s) = { random action w.p. ε argmax_a Q(s,a)
+              w.p. 1−ε } ε decay: εₜ = ε₀ · decay^t UCB: a = argmax_a [Q(a) +
+              c√(ln t / Nₐ)]
+            </div>
+          </div>
+
+          <!-- MDP -->
+          <div class="card concept" data-num="→">
+            <div class="card-type t-green">Problem Formulation</div>
+            <div class="card-name">Markov Decision Process (MDP)</div>
+            <div class="card-desc">
+              The mathematical framework for RL problems. Defined by states,
+              actions, transition probabilities, reward function, and discount
+              factor. Markov property: future depends only on current state.
+            </div>
+            <div class="formula-header fg">Formula</div>
+            <div class="formula fgrn">
+              MDP = (S, A, P, R, γ) P(s'|s,a) = transition probability R(s,a) =
+              expected reward γ ∈ [0,1] = discount factor Return: Gₜ = Σ_{k=0}^∞
+              γᵏ · rₜ₊ₖ
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="hr" data-label="IV"></div>
+
+      <!-- ══════════════════════════
+       SECTION 4 — EVAL METRICS
+  ══════════════════════════ -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">Evaluation Metrics</h2>
+          <span class="section-tag">Performance · Convergence</span>
+        </div>
+        <div class="goal-line eval">
+          Measure how well an RL agent learns and performs
+        </div>
+
+        <div class="grid">
+          <!-- Cumulative Reward -->
+          <div class="card eval-c" data-num="01">
+            <div class="card-type t-cyan">Primary Signal</div>
+            <div class="card-name">Cumulative Reward</div>
+            <div class="card-desc">
+              Total reward accumulated by the agent across an episode or
+              training run. The primary optimization objective. Often plotted
+              against training steps to show learning progress.
+            </div>
+            <div class="formula-header fc">Formula</div>
+            <div class="formula fcyn">
+              G = Σ_{t=0}^{T} rₜ (undiscounted) Discounted: G = Σ_{t=0}^{T} γᵗ ·
+              rₜ Episode return = G of one full episode
+            </div>
+            <div class="range-line">
+              <span>Task-dependent range</span>
+              <span class="good">↑ Higher is better</span>
+            </div>
+          </div>
+
+          <!-- Average Reward -->
+          <div class="card eval-c" data-num="02">
+            <div class="card-type t-cyan">Convergence Indicator</div>
+            <div class="card-name">Average Episode Reward</div>
+            <div class="card-desc">
+              Mean reward per episode over a rolling window (e.g. last 100
+              episodes). Smooths noise in individual episode returns. Standard
+              benchmark metric in RL literature.
+            </div>
+            <div class="formula-header fc">Formula</div>
+            <div class="formula fcyn">
+              Avg Reward = (1/N) · Σᵢ Gᵢ N = number of evaluation episodes
+              Typically computed over last 100 eps Common threshold: Avg ≥
+              target → solved
+            </div>
+            <div class="range-line">
+              <span>Task-dependent</span>
+              <span class="good">↑ Stable high = converged</span>
+            </div>
+          </div>
+
+          <!-- Sample Efficiency -->
+          <div class="card eval-c" data-num="03">
+            <div class="card-type t-cyan">Efficiency</div>
+            <div class="card-name">Sample Efficiency</div>
+            <div class="card-desc">
+              How many environment interactions are needed to reach a target
+              performance level. Model-based methods are typically more
+              sample-efficient than model-free methods.
+            </div>
+            <div class="formula-header fc">Formula</div>
+            <div class="formula fcyn">
+              Steps to threshold: N* = min{t : Avg_reward(t) ≥ target} Area
+              under learning curve: AUC = Σₜ Avg_reward(t) Lower N* = more
+              sample-efficient
+            </div>
+            <div class="range-line">
+              <span>Steps to target</span>
+              <span class="good">↓ Fewer steps = better</span>
+            </div>
+          </div>
+
+          <!-- Policy Stability -->
+          <div class="card eval-c" data-num="04">
+            <div class="card-type t-cyan">Convergence Quality</div>
+            <div class="card-name">Policy Stability / Variance</div>
+            <div class="card-desc">
+              Variance of episode returns across evaluation rollouts. High
+              variance suggests the policy is unstable or hasn't fully
+              converged. Low variance with high mean is ideal.
+            </div>
+            <div class="formula-header fc">Formula</div>
+            <div class="formula fcyn">
+              Std Dev = √[ (1/N) Σ (Gᵢ − Ḡ)² ] Coefficient of variation: CV =
+              Std Dev / |Ḡ| Low CV + High Ḡ = stable, good policy
+            </div>
+            <div class="range-line">
+              <span>CV range: [0, ∞)</span>
+              <span class="good">↓ Lower variance = better</span>
+            </div>
+          </div>
+
+          <!-- Q-Value Convergence -->
+          <div class="card eval-c" data-num="05">
+            <div class="card-type t-cyan">Training Diagnostic</div>
+            <div class="card-name">TD Error / Q-Value Convergence</div>
+            <div class="card-desc">
+              Temporal difference error measures the gap between estimated and
+              target Q-values. Decreasing TD error over training indicates the
+              value function is converging toward the true values.
+            </div>
+            <div class="formula-header fc">Formula</div>
+            <div class="formula fcyn">
+              TD error δ = r + γ·Q(s',a') − Q(s,a) Loss (MSE): L = E[δ²]
+              Convergence: |Q_new − Q_old| → 0 Monitor: plot mean |δ| vs
+              training steps
+            </div>
+            <div class="range-line">
+              <span>Range: [0, ∞)</span>
+              <span class="good">↓ Decreasing = converging</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>

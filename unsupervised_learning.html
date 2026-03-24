@@ -1,0 +1,1098 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Unsupervised Learning — Algorithms & Metrics</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --ink: #0e0e11;
+        --ink-2: #1c1c22;
+        --ink-3: #2a2a34;
+        --muted: #d9e8e6;
+        --muted2: #b7c0bf;
+        --line: rgba(255, 255, 255, 0.07);
+        /* Unsupervised = violet/purple palette */
+        --violet: #b07fff;
+        --violet-l: #d0aaff;
+        --violet-d: #6b3fcc;
+        --pink: #ff6eb4;
+        --cyan: #1de9d4;
+        --amber: #f5a623;
+        --card: #14141a;
+        --card-h: #1a1a24;
+      }
+
+      .wrapper {
+        position: relative;
+        z-index: 1;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 72px 32px 96px;
+        background: linear-gradient(135deg, #5e791c 0%, #a07424 100%);
+      }
+
+      /* ── HEADER ── */
+      .header {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: end;
+        gap: 32px;
+        margin-bottom: 80px;
+        padding-bottom: 40px;
+        border-bottom: 1px solid var(--line);
+        position: relative;
+      }
+
+      .header::after {
+        content: "";
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        width: 120px;
+        height: 2px;
+        background: linear-gradient(90deg, var(--violet), transparent);
+      }
+
+      .header-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--violet-l);
+        margin-bottom: 20px;
+      }
+
+      .header-badge::before {
+        content: "";
+        display: block;
+        width: 24px;
+        height: 1px;
+        background: var(--violet-l);
+      }
+
+      h1 {
+        font-family: "Playfair Display", serif;
+        font-size: clamp(38px, 6vw, 78px);
+        font-weight: 900;
+        line-height: 0.95;
+        letter-spacing: -2px;
+        color: #fff;
+      }
+
+      h1 .accent {
+        font-style: italic;
+        color: var(--violet-l);
+      }
+
+      .header-right {
+        text-align: right;
+        padding-bottom: 8px;
+      }
+
+      .header-desc {
+        font-size: 13px;
+        color: var(--muted2);
+        line-height: 1.7;
+        max-width: 220px;
+        text-align: right;
+      }
+
+      .header-stats {
+        display: flex;
+        gap: 24px;
+        justify-content: flex-end;
+        margin-top: 16px;
+      }
+
+      .stat {
+        text-align: center;
+      }
+
+      .stat-num {
+        font-family: "Playfair Display", serif;
+        font-size: 28px;
+        font-weight: 700;
+        color: #fff;
+        line-height: 1;
+      }
+
+      .stat-label {
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+
+      /* ── CATEGORY TABS (Clustering / Dim Reduction / Association) ── */
+      .cat-nav {
+        display: flex;
+        gap: 2px;
+        margin-bottom: 64px;
+      }
+
+      .cat-tab {
+        flex: 1;
+        padding: 14px 12px;
+        background: var(--card);
+        border: none;
+        cursor: default;
+        text-align: left;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .cat-tab::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+      }
+
+      .cat-tab.clustering::before {
+        background: linear-gradient(
+          90deg,
+          rgba(176, 127, 255, 0.8),
+          transparent
+        );
+      }
+      .cat-tab.dimred::before {
+        background: linear-gradient(
+          90deg,
+          rgba(29, 233, 212, 0.7),
+          transparent
+        );
+      }
+      .cat-tab.association::before {
+        background: linear-gradient(
+          90deg,
+          rgba(255, 110, 180, 0.7),
+          transparent
+        );
+      }
+
+      .cat-tab-label {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+
+      .cat-tab-title {
+        font-family: "Playfair Display", serif;
+        font-size: 17px;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 6px;
+      }
+
+      .cat-tab-sub {
+        font-size: 11px;
+        color: var(--muted2);
+        line-height: 1.5;
+      }
+
+      .cat-tag {
+        display: inline-block;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        padding: 2px 10px;
+        border-radius: 2px;
+        margin-top: 8px;
+      }
+
+      .cat-tag.c {
+        background: rgba(176, 127, 255, 0.12);
+        color: var(--violet-l);
+      }
+      .cat-tag.d {
+        background: rgba(29, 233, 212, 0.1);
+        color: var(--cyan);
+      }
+      .cat-tag.a {
+        background: rgba(255, 110, 180, 0.1);
+        color: var(--pink);
+      }
+
+      /* ── SECTION ── */
+      .section {
+        margin-bottom: 80px;
+      }
+
+      .section-header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        margin-bottom: 32px;
+      }
+
+      .section-title {
+        font-family: "Playfair Display", serif;
+        font-size: 32px;
+        font-weight: 700;
+        color: #fff;
+        letter-spacing: -0.5px;
+      }
+
+      .section-tag {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--muted);
+        border: 1px solid var(--line);
+        padding: 4px 14px;
+        border-radius: 2px;
+      }
+
+      .goal-line {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        color: var(--muted2);
+        text-transform: uppercase;
+        margin-bottom: 28px;
+      }
+
+      .goal-line::before {
+        content: "";
+        display: block;
+        width: 3px;
+        height: 14px;
+        border-radius: 2px;
+        flex-shrink: 0;
+      }
+
+      .goal-line.clustering::before {
+        background: var(--violet);
+      }
+      .goal-line.dimred::before {
+        background: var(--cyan);
+      }
+      .goal-line.association::before {
+        background: var(--pink);
+      }
+      .goal-line.metrics::before {
+        background: var(--amber);
+      }
+
+      /* ── GRID ── */
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2px;
+      }
+
+      /* ── CARD ── */
+      .card {
+        background: var(--card);
+        padding: 28px 26px 24px;
+        position: relative;
+        overflow: hidden;
+        transition: background 0.2s ease;
+        cursor: default;
+      }
+
+      .card:hover {
+        background: var(--card-h);
+      }
+
+      .card::before {
+        content: attr(data-num);
+        position: absolute;
+        top: 16px;
+        right: 20px;
+        font-family: "Playfair Display", serif;
+        font-size: 64px;
+        font-weight: 900;
+        color: rgba(255, 255, 255, 0.03);
+        line-height: 1;
+        pointer-events: none;
+      }
+
+      /* top accent bars */
+      .card.cluster::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          rgba(176, 127, 255, 0.8),
+          transparent
+        );
+      }
+      .card.hier::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          rgba(176, 127, 255, 0.5),
+          rgba(29, 233, 212, 0.4),
+          transparent
+        );
+      }
+      .card.density::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          rgba(245, 166, 35, 0.6),
+          transparent
+        );
+      }
+      .card.pca::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          rgba(29, 233, 212, 0.7),
+          transparent
+        );
+      }
+      .card.assoc::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          rgba(255, 110, 180, 0.7),
+          transparent
+        );
+      }
+      .card.metric-card::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          rgba(245, 166, 35, 0.6),
+          transparent
+        );
+      }
+
+      .card-type {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        font-weight: 500;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--violet-d);
+        margin-bottom: 10px;
+      }
+
+      .card-type.t-cyan {
+        color: #1a6a60;
+      }
+      .card-type.t-pink {
+        color: #8a2060;
+      }
+      .card-type.t-amber {
+        color: #7a5010;
+      }
+
+      .card-name {
+        font-family: "Playfair Display", serif;
+        font-size: 18px;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 12px;
+        letter-spacing: -0.3px;
+        line-height: 1.25;
+      }
+
+      .card-desc {
+        font-size: 12px;
+        color: var(--muted2);
+        line-height: 1.75;
+        margin-bottom: 20px;
+        font-weight: 400;
+      }
+
+      .formula-header {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        font-weight: 500;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 8px;
+      }
+
+      .formula-header::before {
+        font-size: 13px;
+      }
+
+      .formula-header.fv::before {
+        content: "ƒ";
+        color: var(--violet-l);
+      }
+      .formula-header.fc::before {
+        content: "ƒ";
+        color: var(--cyan);
+      }
+      .formula-header.fp::before {
+        content: "ƒ";
+        color: var(--pink);
+      }
+      .formula-header.fa::before {
+        content: "∑";
+        color: var(--amber);
+      }
+
+      .formula {
+        background: #0c0c10;
+        border-left: 2px solid var(--violet);
+        border: 1px solid rgba(176, 127, 255, 0.12);
+        border-left: 2px solid var(--violet);
+        border-radius: 0 4px 4px 0;
+        padding: 14px 16px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: #c8b0ff;
+        line-height: 1.8;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      .formula.fcyan {
+        border-left-color: var(--cyan);
+        color: #aad8d4;
+        border-color: rgba(29, 233, 212, 0.12);
+      }
+      .formula.fpink {
+        border-left-color: var(--pink);
+        color: #ffc0e0;
+        border-color: rgba(255, 110, 180, 0.12);
+      }
+      .formula.famber {
+        border-left-color: var(--amber);
+        color: #f0d090;
+        border-color: rgba(245, 166, 35, 0.12);
+      }
+
+      .range-line {
+        display: flex;
+        justify-content: space-between;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9.5px;
+        color: var(--muted);
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(255, 255, 255, 0.04);
+      }
+
+      .range-line .good {
+        color: var(--cyan);
+      }
+      .range-line .caution {
+        color: var(--amber);
+      }
+      .range-line .pink {
+        color: var(--pink);
+      }
+
+      /* ── MEMORY BOX ── */
+      .memory {
+        margin-top: 32px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 24px;
+        border: 1px solid rgba(176, 127, 255, 0.2);
+        background: linear-gradient(
+          135deg,
+          rgba(176, 127, 255, 0.04),
+          transparent
+        );
+        padding: 24px 28px;
+        position: relative;
+      }
+
+      .memory::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 40px;
+        height: 2px;
+        background: var(--violet);
+      }
+
+      .mem-label {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--violet-l);
+        margin-bottom: 8px;
+      }
+
+      .mem-phrase {
+        font-family: "Playfair Display", serif;
+        font-style: italic;
+        font-size: 18px;
+        font-weight: 700;
+        color: #fff;
+        letter-spacing: -0.3px;
+      }
+
+      .mem-sub {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 6px;
+      }
+
+      .mem-icon {
+        font-size: 36px;
+        opacity: 0.6;
+      }
+
+      /* ── DIVIDER ── */
+      .hr {
+        background: var(--line);
+        margin: 0 0 64px;
+        position: relative;
+      }
+
+      .hr::before {
+        content: attr(data-label);
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: var(--ink);
+        padding: 0 16px;
+        font-family: "Playfair Display", serif;
+        font-size: 13px;
+        color: var(--muted);
+        letter-spacing: 3px;
+      }
+
+      /* ── FOOTER ── */
+      .footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 32px;
+        border-top: 1px solid var(--line);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        color: var(--muted);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+      }
+
+      .footer-dots {
+        display: flex;
+        gap: 6px;
+      }
+      .footer-dot {
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: var(--violet);
+        opacity: 0.4;
+      }
+
+      /* ── RESPONSIVE ── */
+      @media (max-width: 720px) {
+        .wrapper {
+          padding: 40px 16px 64px;
+        }
+        .header {
+          grid-template-columns: 1fr;
+        }
+        .header-right {
+          text-align: left;
+        }
+        .header-stats {
+          justify-content: flex-start;
+        }
+        .header-desc {
+          text-align: left;
+          max-width: 100%;
+        }
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        .section-header {
+          flex-direction: column;
+          gap: 10px;
+        }
+        .memory {
+          grid-template-columns: 1fr;
+        }
+        .mem-icon {
+          display: none;
+        }
+        .footer {
+          flex-direction: column;
+          gap: 12px;
+        }
+        .cat-nav {
+          flex-direction: column;
+        }
+      }
+
+      @media print {
+        body {
+          background: #fff;
+          color: #111;
+        }
+        .card,
+        .formula {
+          background: #f9f9f9 !important;
+          border-color: #ddd !important;
+        }
+        .card-name,
+        h1,
+        .section-title {
+          color: #111 !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="header">
+        <h5>Unsupervised Learning</h5>
+        <p>
+          Discover hidden patterns and structures in data without labeled
+          examples.
+        </p>
+      </div>
+      <!-- CATEGORY OVERVIEW -->
+      <div class="cat-nav">
+        <div class="cat-tab clustering">
+          <div class="cat-tab-label">Category 01</div>
+          <div class="cat-tab-title">Clustering</div>
+          <div class="cat-tab-sub">
+            Group unlabeled data points into meaningful clusters based on
+            similarity.
+          </div>
+          <span class="cat-tag c"
+            >K-Means · Hierarchical · DBSCAN · Mean Shift</span
+          >
+        </div>
+        <div class="cat-tab dimred">
+          <div class="cat-tab-label">Category 02</div>
+          <div class="cat-tab-title">Dimensionality Reduction</div>
+          <div class="cat-tab-sub">
+            Compress high-dimensional data while preserving structure or
+            variance.
+          </div>
+          <span class="cat-tag d">PCA · t-SNE · LDA</span>
+        </div>
+        <div class="cat-tab association">
+          <div class="cat-tab-label">Category 03</div>
+          <div class="cat-tab-title">Association Rules</div>
+          <div class="cat-tab-sub">
+            Discover co-occurrence patterns and item relationships in
+            transactional data.
+          </div>
+          <span class="cat-tag a">Apriori · FP-Growth</span>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════
+       SECTION 1 — CLUSTERING
+  ════════════════════════════ -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">Clustering</h2>
+          <span class="section-tag">Unsupervised · Group Discovery</span>
+        </div>
+        <div class="goal-line clustering">
+          Find natural groupings in data without predefined labels
+        </div>
+
+        <div class="grid">
+          <!-- K-Means -->
+          <div class="card cluster" data-num="01">
+            <div class="card-type">Partition-Based</div>
+            <div class="card-name">K-Means</div>
+            <div class="card-desc">
+              Partitions data into K clusters by iteratively assigning points to
+              the nearest centroid and recomputing centroids. Requires K to be
+              specified upfront. Sensitive to initialization and outliers.
+            </div>
+            <div class="formula-header fv">Formula</div>
+            <div class="formula">
+              Objective: min Σₖ Σ_{x∈Cₖ} ‖x − μₖ‖² Assignment: Cₖ = {x : ‖x−μₖ‖
+              ≤ ‖x−μⱼ‖ ∀j} Update: μₖ = (1/|Cₖ|) · Σ_{x∈Cₖ} x
+            </div>
+          </div>
+
+          <!-- Hierarchical -->
+          <div class="card hier" data-num="02">
+            <div class="card-type">Hierarchical</div>
+            <div class="card-name">Hierarchical Clustering</div>
+            <div class="card-desc">
+              Builds a tree of clusters (dendrogram) by successively merging
+              (agglomerative) or splitting (divisive) clusters. No need to
+              specify K — cut the dendrogram at any level.
+            </div>
+            <div class="formula-header fv">Formula</div>
+            <div class="formula">
+              Linkage distances: Single: min d(a,b), a∈A, b∈B Complete: max
+              d(a,b), a∈A, b∈B Average: (1/|A||B|) Σ d(a,b) Ward: min ΔWCSS
+              after merge
+            </div>
+          </div>
+
+          <!-- DBSCAN -->
+          <div class="card density" data-num="03">
+            <div class="card-type">Density-Based</div>
+            <div class="card-name">DBSCAN</div>
+            <div class="card-desc">
+              Identifies clusters as dense regions separated by low-density
+              areas. Automatically detects noise/outliers. Finds
+              arbitrary-shaped clusters. Requires ε (radius) and MinPts
+              parameters.
+            </div>
+            <div class="formula-header fv">Formula</div>
+            <div class="formula">
+              Core point: |N_ε(x)| ≥ MinPts N_ε(x) = {y : d(x,y) ≤ ε} Border: in
+              N_ε of core but < MinPts Noise: neither core nor border point
+            </div>
+          </div>
+
+          <!-- Mean Shift -->
+          <div class="card density" data-num="04">
+            <div class="card-type">Density-Based</div>
+            <div class="card-name">Mean Shift</div>
+            <div class="card-desc">
+              Iteratively shifts each data point toward the local density
+              maximum (mode) using a kernel function. Automatically determines
+              the number of clusters. No K needed.
+            </div>
+            <div class="formula-header fv">Formula</div>
+            <div class="formula">
+              m(x) = Σ K(x−xᵢ)·xᵢ / Σ K(x−xᵢ) Shift: x ← m(x) (repeat until
+              conv.) K(x) = Gaussian kernel: exp(−‖x‖²/2h²) h = bandwidth
+              hyperparameter
+            </div>
+          </div>
+        </div>
+
+        <!-- Memory -->
+        <div class="memory">
+          <div>
+            <div class="mem-label">Mnemonic · Clustering Algorithms</div>
+            <div class="mem-phrase">"Kind Heroes Don't Misplace Samples"</div>
+            <div class="mem-sub">
+              K-Means · Hierarchical · DBSCAN · Mean Shift
+            </div>
+          </div>
+          <div class="mem-icon">💡</div>
+        </div>
+      </section>
+
+      <div class="hr" data-label="II"></div>
+
+      <!-- ════════════════════════════
+       SECTION 2 — DIM REDUCTION
+  ════════════════════════════ -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">Dimensionality Reduction</h2>
+          <span class="section-tag"
+            >Feature Selection · Feature Extraction</span
+          >
+        </div>
+        <div class="goal-line dimred">
+          Compress data into fewer dimensions while preserving key structure
+        </div>
+
+        <div class="grid">
+          <!-- PCA -->
+          <div class="card pca" data-num="01">
+            <div class="card-type t-cyan">Feature Extraction · Linear</div>
+            <div class="card-name">PCA</div>
+            <div class="card-desc">
+              Projects data onto orthogonal axes (principal components) that
+              capture maximum variance. Unsupervised — ignores class labels.
+              Used for compression, noise removal, and visualization.
+            </div>
+            <div class="formula-header fc">Formula</div>
+            <div class="formula fcyan">
+              Covariance: Σ = (1/n) XᵀX Eigen decomp: Σ·v = λ·v Project: Z = X ·
+              Vₖ Vₖ = top-k eigenvectors Var explained: λₖ / Σλ
+            </div>
+          </div>
+
+          <!-- t-SNE -->
+          <div class="card pca" data-num="02">
+            <div class="card-type t-cyan">Feature Extraction · Non-Linear</div>
+            <div class="card-name">t-SNE</div>
+            <div class="card-desc">
+              Maps high-dimensional data to 2D/3D by preserving local
+              neighborhood structure. Excellent for visualization.
+              Non-deterministic and computationally expensive for large
+              datasets.
+            </div>
+            <div class="formula-header fc">Formula</div>
+            <div class="formula fcyan">
+              High-dim affinity: pⱼ|ᵢ = exp(−‖xᵢ−xⱼ‖²/2σᵢ²) / Σ Low-dim affinity
+              (Student-t): qᵢⱼ = (1+‖yᵢ−yⱼ‖²)⁻¹ / Σ Loss: KL(P‖Q) = Σ
+              pᵢⱼ·log(pᵢⱼ/qᵢⱼ)
+            </div>
+          </div>
+
+          <!-- LDA -->
+          <div class="card pca" data-num="03">
+            <div class="card-type t-cyan">Feature Extraction · Supervised</div>
+            <div class="card-name">LDA — Linear Discriminant Analysis</div>
+            <div class="card-desc">
+              Finds axes that maximize between-class separation while minimizing
+              within-class scatter. Unlike PCA, LDA uses class labels —
+              semi-supervised dimensionality reduction.
+            </div>
+            <div class="formula-header fc">Formula</div>
+            <div class="formula fcyan">
+              Maximize: J(w) = wᵀSᵦw / wᵀSᵥw Sᵦ = between-class scatter matrix
+              Sᵥ = within-class scatter matrix Project: z = Wᵀx (W = top
+              eigenvecs)
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="hr" data-label="III"></div>
+
+      <!-- ════════════════════════════
+       SECTION 3 — ASSOCIATION
+  ════════════════════════════ -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">Association Rules</h2>
+          <span class="section-tag">Pattern Mining · Market Basket</span>
+        </div>
+        <div class="goal-line association">
+          Discover frequent item co-occurrences and "if-then" purchase patterns
+        </div>
+
+        <div class="grid">
+          <!-- Apriori -->
+          <div class="card assoc" data-num="01">
+            <div class="card-type t-pink">Frequent Itemset Mining</div>
+            <div class="card-name">Apriori Algorithm</div>
+            <div class="card-desc">
+              Generates frequent itemsets using the anti-monotone property: all
+              subsets of a frequent itemset are frequent. Builds itemsets
+              bottom-up, pruning infrequent candidates at each level.
+            </div>
+            <div class="formula-header fp">Formula</div>
+            <div class="formula fpink">
+              Support: sup(A) = |T(A)| / |T| Confidence: conf(A→B) = sup(A∪B) /
+              sup(A) Lift: lift(A→B) = conf(A→B) / sup(B) Apriori property: if
+              sup(X) < min_sup → prune all supersets
+            </div>
+            <div class="range-line">
+              <span>Key metrics: Support, Confidence, Lift</span>
+              <span class="pink">Lift &gt; 1 = positive association</span>
+            </div>
+          </div>
+
+          <!-- FP-Growth -->
+          <div class="card assoc" data-num="02">
+            <div class="card-type t-pink">Frequent Itemset Mining</div>
+            <div class="card-name">FP-Growth</div>
+            <div class="card-desc">
+              Mines frequent itemsets without candidate generation using a
+              compact FP-Tree structure. Scans the database only twice —
+              significantly faster than Apriori on dense datasets.
+            </div>
+            <div class="formula-header fp">Formula</div>
+            <div class="formula fpink">
+              1. Build FP-Tree from transactions (header table + compressed
+              trie) 2. Mine conditional pattern bases for each frequent item 3.
+              Build conditional FP-Trees and extract frequent itemsets No
+              candidate generation needed
+            </div>
+            <div class="range-line">
+              <span>Faster than Apriori</span>
+              <span class="pink">Same support/conf/lift metrics</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Association metrics -->
+        <div style="margin-top: 2px">
+          <div class="grid">
+            <div class="card assoc" data-num="→">
+              <div class="card-type t-pink">Metric</div>
+              <div class="card-name">Support</div>
+              <div class="card-desc">
+                How frequently does an itemset appear across all transactions?
+                Filters out rare, statistically insignificant patterns.
+              </div>
+              <div class="formula-header fp">Formula</div>
+              <div class="formula fpink">
+                sup(A) = |transactions containing A| / |total transactions|
+                Range: [0, 1] Higher = more frequent
+              </div>
+            </div>
+            <div class="card assoc" data-num="→">
+              <div class="card-type t-pink">Metric</div>
+              <div class="card-name">Confidence</div>
+              <div class="card-desc">
+                Given that A is purchased, how often is B also purchased?
+                Measures the strength of the conditional relationship.
+              </div>
+              <div class="formula-header fp">Formula</div>
+              <div class="formula fpink">
+                conf(A→B) = sup(A ∪ B) / sup(A) Range: [0, 1] Higher = stronger
+                rule
+              </div>
+            </div>
+            <div class="card assoc" data-num="→">
+              <div class="card-type t-pink">Metric</div>
+              <div class="card-name">Lift</div>
+              <div class="card-desc">
+                How much more likely is B purchased when A is purchased,
+                compared to random chance? Corrects confidence for the base
+                popularity of B.
+              </div>
+              <div class="formula-header fp">Formula</div>
+              <div class="formula fpink">
+                lift(A→B) = conf(A→B) / sup(B) lift > 1 → positive association
+                lift = 1 → independent lift < 1 → negative association
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="hr" data-label="IV"></div>
+
+      <!-- ════════════════════════════
+       SECTION 4 — EVAL METRICS
+  ════════════════════════════ -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">Clustering Evaluation Metrics</h2>
+          <span class="section-tag">Internal · No Ground Truth Needed</span>
+        </div>
+        <div class="goal-line metrics">
+          Measure cluster quality without labeled data
+        </div>
+
+        <div class="grid">
+          <!-- Silhouette -->
+          <div class="card metric-card" data-num="01">
+            <div class="card-type t-amber">Cohesion + Separation</div>
+            <div class="card-name">Silhouette Score</div>
+            <div class="card-desc">
+              Measures how similar a point is to its own cluster vs.
+              neighbouring clusters. Averaged over all samples. Higher values
+              indicate well-separated, compact clusters.
+            </div>
+            <div class="formula-header fa">Formula</div>
+            <div class="formula famber">
+              s(i) = (b(i) − a(i)) / max(a(i), b(i)) a(i) = mean dist to
+              same-cluster points b(i) = mean dist to nearest other cluster
+              Score = mean s(i) over all points
+            </div>
+            <div class="range-line">
+              <span>Range: [−1, 1]</span>
+              <span class="good">↑ Closer to 1 = better</span>
+            </div>
+          </div>
+
+          <!-- Davies-Bouldin -->
+          <div class="card metric-card" data-num="02">
+            <div class="card-type t-amber">Compactness / Separation Ratio</div>
+            <div class="card-name">Davies-Bouldin Index</div>
+            <div class="card-desc">
+              Average ratio of within-cluster scatter to between-cluster
+              separation for each cluster pair. Lower is better — tighter,
+              well-separated clusters score closer to zero.
+            </div>
+            <div class="formula-header fa">Formula</div>
+            <div class="formula famber">
+              DB = (1/k) · Σᵢ max_{j≠i} Rᵢⱼ Rᵢⱼ = (σᵢ + σⱼ) / d(μᵢ, μⱼ) σᵢ = avg
+              dist of points in Cᵢ to μᵢ d(μᵢ,μⱼ) = dist between centroids
+            </div>
+            <div class="range-line">
+              <span>Range: [0, ∞)</span>
+              <span class="good">↓ Lower is better</span>
+            </div>
+          </div>
+
+          <!-- WCSS -->
+          <div class="card metric-card" data-num="03">
+            <div class="card-type t-amber">Inertia · Compactness</div>
+            <div class="card-name">WCSS — Within-Cluster Sum of Squares</div>
+            <div class="card-desc">
+              Sum of squared distances from each point to its cluster centroid.
+              The objective minimized by K-Means. Used in the Elbow Method to
+              select the optimal K.
+            </div>
+            <div class="formula-header fa">Formula</div>
+            <div class="formula famber">
+              WCSS = Σₖ Σ_{x∈Cₖ} ‖x − μₖ‖² Elbow method: plot WCSS vs K, pick K
+              where decrease flattens Also called: Inertia
+            </div>
+            <div class="range-line">
+              <span>Range: [0, ∞)</span>
+              <span class="good">↓ Lower is better</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>
