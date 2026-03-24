@@ -1,718 +1,876 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Regression — Algorithms &amp; Metrics</title>
-  <link
-    href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@400;500;600&display=swap"
-    rel="stylesheet" />
-
-  <style>
-    *,
-    *::before,
-    *::after {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    :root {
-      --green-dark: #0b5e50;
-      --green-mid: #11998e;
-      --green-light: #38ef7d;
-      --green-pale: #e6faf5;
-      --green-muted: #a7f3d0;
-      --text-900: #0f2117;
-      --text-700: #1f4a35;
-      --text-500: #4b7a61;
-      --text-400: #6b9e84;
-      --white: #ffffff;
-      --card-bg: #f9fefc;
-      --border: rgba(17, 153, 142, 0.18);
-      --shadow-sm: 0 2px 8px rgba(11, 94, 80, 0.07);
-      --shadow-md: 0 6px 24px rgba(11, 94, 80, 0.12);
-      --shadow-lg: 0 16px 48px rgba(11, 94, 80, 0.14);
-      --radius-sm: 8px;
-      --radius-md: 14px;
-      --radius-lg: 22px;
-    }
-
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: #0b1f16;
-      background-image:
-        radial-gradient(ellipse 80% 50% at 20% -10%, rgba(56, 239, 125, 0.12) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 40% at 80% 110%, rgba(17, 153, 142, 0.10) 0%, transparent 55%);
-      min-height: 100vh;
-      padding: 48px 20px 64px;
-      color: var(--text-900);
-    }
-
-    /* ── WRAPPER ── */
-    .wrapper {
-      max-width: 1120px;
-      margin: 0 auto;
-    }
-
-    /* ── HEADER ── */
-    .header {
-      text-align: center;
-      margin-bottom: 56px;
-    }
-
-    .header-eyebrow {
-      display: inline-block;
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 2.5px;
-      text-transform: uppercase;
-      color: var(--green-light);
-      background: rgba(56, 239, 125, 0.1);
-      border: 1px solid rgba(56, 239, 125, 0.25);
-      border-radius: 20px;
-      padding: 5px 16px;
-      margin-bottom: 18px;
-    }
-
-    .header h1 {
-      font-family: 'Fraunces', serif;
-      font-size: clamp(36px, 6vw, 64px);
-      font-weight: 900;
-      line-height: 1.05;
-      color: var(--white);
-      letter-spacing: -1px;
-      margin-bottom: 14px;
-    }
-
-    .header h1 span {
-      background: linear-gradient(100deg, var(--green-mid), var(--green-light));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .header p {
-      font-size: 15px;
-      color: rgba(255, 255, 255, 0.45);
-      max-width: 480px;
-      margin: 0 auto;
-      line-height: 1.6;
-    }
-
-    /* ── SECTION LABEL ── */
-    .section-label {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 24px;
-    }
-
-    .section-label h2 {
-      font-family: 'Fraunces', serif;
-      font-size: 28px;
-      font-weight: 700;
-      color: var(--white);
-      letter-spacing: -0.5px;
-    }
-
-    .section-label .pill {
-      font-family: 'DM Mono', monospace;
-      font-size: 10.5px;
-      font-weight: 500;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      background: rgba(17, 153, 142, 0.2);
-      color: var(--green-light);
-      border: 1px solid rgba(17, 153, 142, 0.35);
-      border-radius: 20px;
-      padding: 3px 12px;
-    }
-
-    .goal-banner {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--green-dark);
-      background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-      border-radius: var(--radius-sm);
-      padding: 9px 16px;
-      margin-bottom: 30px;
-    }
-
-    /* ── SECTION WRAPPER ── */
-    .section-block {
-      margin-bottom: 72px;
-    }
-
-    /* ── GRIDS ── */
-    .algo-grid,
-    .metrics-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 18px;
-    }
-
-    /* ── ALGO CARD ── */
-    .algo-card {
-      background: var(--card-bg);
-      border-radius: var(--radius-md);
-      border: 1px solid var(--border);
-      padding: 22px 20px 18px;
-      position: relative;
-      overflow: hidden;
-      transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
-    }
-
-    .algo-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 4px;
-      height: 100%;
-      background: linear-gradient(180deg, var(--green-mid), var(--green-light));
-      border-radius: 4px 0 0 4px;
-    }
-
-    .algo-card:hover {
-      transform: translateY(-4px);
-      box-shadow: var(--shadow-md);
-      border-color: rgba(17, 153, 142, 0.45);
-    }
-
-    .algo-name {
-      font-size: 14.5px;
-      font-weight: 600;
-      color: var(--green-dark);
-      margin-bottom: 7px;
-    }
-
-    .algo-type {
-      display: inline-block;
-      font-family: 'DM Mono', monospace;
-      font-size: 9.5px;
-      font-weight: 500;
-      padding: 2px 10px;
-      border-radius: 10px;
-      background: #d1fae5;
-      color: #065f46;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      margin-bottom: 11px;
-    }
-
-    .algo-desc {
-      font-size: 12.5px;
-      color: var(--text-500);
-      line-height: 1.65;
-      margin-bottom: 14px;
-    }
-
-    .formula-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 9.5px;
-      font-weight: 500;
-      color: #b45309;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 6px;
-    }
-
-    .formula-box {
-      background: #ecfdf5;
-      border: 1px solid #a7f3d0;
-      border-left: 3px solid var(--green-mid);
-      border-radius: var(--radius-sm);
-      padding: 12px 14px;
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      color: #065f46;
-      line-height: 1.75;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    /* ── METRIC CARD ── */
-    .metric-card {
-      background: var(--card-bg);
-      border-radius: var(--radius-md);
-      border: 1px solid var(--border);
-      padding: 22px 20px 18px;
-      position: relative;
-      overflow: hidden;
-      transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
-    }
-
-    .metric-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 4px;
-      height: 100%;
-      background: linear-gradient(180deg, #38ef7d, #11998e);
-      border-radius: 4px 0 0 4px;
-    }
-
-    .metric-card:hover {
-      transform: translateY(-4px);
-      box-shadow: var(--shadow-md);
-      border-color: rgba(17, 153, 142, 0.45);
-    }
-
-    .metric-name {
-      font-size: 14.5px;
-      font-weight: 600;
-      color: var(--green-dark);
-      margin-bottom: 8px;
-    }
-
-    .metric-desc {
-      font-size: 12.5px;
-      color: var(--text-500);
-      line-height: 1.65;
-      margin-bottom: 14px;
-    }
-
-    /* ── MEMORY BOX ── */
-    .memory-box {
-      margin-top: 28px;
-      background: rgba(56, 239, 125, 0.07);
-      border: 1.5px dashed rgba(56, 239, 125, 0.35);
-      border-radius: var(--radius-md);
-      padding: 18px 22px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .mem-icon {
-      font-size: 26px;
-      flex-shrink: 0;
-    }
-
-    .mem-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 10px;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      color: rgba(255, 255, 255, 0.45);
-      margin-bottom: 4px;
-    }
-
-    .mem-phrase {
-      font-family: 'Fraunces', serif;
-      font-style: italic;
-      font-size: 17px;
-      font-weight: 700;
-      color: var(--green-light);
-      letter-spacing: -0.2px;
-    }
-
-    /* ── DIVIDER ── */
-    .divider {
-      width: 100%;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(56, 239, 125, 0.2), transparent);
-      margin: 0 0 64px;
-    }
-
-    /* ── FOOTER ── */
-    .footer {
-      text-align: center;
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      color: rgba(255, 255, 255, 0.2);
-      letter-spacing: 1px;
-      padding-top: 8px;
-    }
-
-    /* ── RESPONSIVE ── */
-    @media (max-width: 680px) {
-      body {
-        padding: 32px 14px 48px;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Regression — Algorithms & Metrics</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
       }
 
-      .algo-grid,
-      .metrics-grid {
-        grid-template-columns: 1fr;
+      :root {
+        --ink: #0e0e11;
+        --ink-2: #1c1c22;
+        --ink-3: #2a2a34;
+        --muted: #6b6b80;
+        --muted2: #9898ac;
+        --line: rgba(255, 255, 255, 0.07);
+        --gold: #c9a84c;
+        --gold-l: #e8c97a;
+        --gold-d: #8f6e28;
+        --cream: #f8f4ec;
+        --teal: #1de9b6;
+        --coral: #ff6b6b;
+        --card: #14141a;
+        --card-h: #1a1a24;
       }
 
-      .memory-box {
-        flex-direction: column;
-        gap: 10px;
+      .wrapper {
+        position: relative;
+        z-index: 1;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 72px 32px 96px;
+        background: #6a3341; /* subtle gold gradient overlay */
+      }
+
+      .header::after {
+        content: "";
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        width: 120px;
+        height: 2px;
+        background: linear-gradient(90deg, var(--gold), transparent);
+      }
+
+      .header-left {
+      }
+
+      .header-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--gold);
+        margin-bottom: 20px;
+      }
+
+      .header-badge::before {
+        content: "";
+        display: block;
+        width: 24px;
+        height: 1px;
+        background: var(--gold);
+      }
+
+      h1 {
+        font-family: "Playfair Display", serif;
+        font-size: clamp(44px, 7vw, 84px);
+        font-weight: 900;
+        line-height: 0.95;
+        letter-spacing: -2px;
+        color: #fff;
+      }
+
+      h1 .accent {
+        font-style: italic;
+        color: var(--gold);
+      }
+
+      .header-right {
+        text-align: right;
+        padding-bottom: 8px;
+      }
+
+      .header-desc {
+        font-size: 13px;
+        color: var(--muted2);
+        line-height: 1.7;
+        max-width: 220px;
+        text-align: right;
+      }
+
+      .header-stats {
+        display: flex;
+        gap: 24px;
+        justify-content: flex-end;
+        margin-top: 16px;
+      }
+
+      .stat {
         text-align: center;
       }
-    }
 
-    /* ── PRINT ── */
-    @media print {
-      body {
-        background: white;
-        padding: 20px;
+      .stat-num {
+        font-family: "Playfair Display", serif;
+        font-size: 28px;
+        font-weight: 700;
+        color: #fff;
+        line-height: 1;
       }
 
-      .header h1 {
-        color: #065f46;
-        -webkit-text-fill-color: unset;
-        background: none;
+      .stat-label {
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--muted);
+        margin-top: 4px;
       }
 
-      .header h1 span {
-        -webkit-text-fill-color: unset;
-        color: #11998e;
+      /* ── SECTION ── */
+      .section {
+        margin-bottom: 80px;
       }
 
-      .header-eyebrow {
-        background: #d1fae5;
-        color: #065f46;
-        border-color: #a7f3d0;
+      .section-header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        margin-bottom: 32px;
       }
 
-      .section-label h2 {
-        color: #065f46;
+      .section-title {
+        font-family: "Playfair Display", serif;
+        font-size: 32px;
+        font-weight: 700;
+        color: #fff;
+        letter-spacing: -0.5px;
       }
 
-      .section-label .pill {
-        background: #d1fae5;
-        color: #065f46;
-        border-color: #a7f3d0;
+      .section-tag {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--muted);
+        border: 1px solid var(--line);
+        padding: 4px 14px;
+        border-radius: 2px;
       }
 
-      .header p {
-        color: #4b5563;
+      .goal-line {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        color: var(--muted2);
+        text-transform: uppercase;
+        margin-bottom: 28px;
       }
 
-      .algo-card,
-      .metric-card {
-        page-break-inside: avoid;
-        box-shadow: none;
-        border: 1px solid #a7f3d0;
+      .goal-line::before {
+        content: "";
+        display: block;
+        width: 3px;
+        height: 14px;
+        background: var(--gold);
+        border-radius: 2px;
+        flex-shrink: 0;
       }
 
-      .memory-box {
-        border: 1.5px dashed #a7f3d0;
-        background: #ecfdf5;
+      /* ── GRID ── */
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2px;
+      }
+
+      /* ── CARD ── */
+      .card {
+        background: var(--card);
+        padding: 28px 26px 24px;
+        position: relative;
+        overflow: hidden;
+        transition: background 0.2s ease;
+        cursor: default;
+      }
+
+      .card:hover {
+        background: var(--card-h);
+      }
+
+      .card::before {
+        content: attr(data-num);
+        position: absolute;
+        top: 16px;
+        right: 20px;
+        font-family: "Playfair Display", serif;
+        font-size: 64px;
+        font-weight: 900;
+        color: rgba(255, 255, 255, 0.03);
+        line-height: 1;
+        pointer-events: none;
+      }
+
+      .card-type {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        font-weight: 500;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--gold-d);
+        margin-bottom: 10px;
+      }
+
+      .card-name {
+        font-family: "Playfair Display", serif;
+        font-size: 18px;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 12px;
+        letter-spacing: -0.3px;
+        line-height: 1.25;
+      }
+
+      .card-desc {
+        font-size: 12px;
+        color: var(--muted2);
+        line-height: 1.75;
+        margin-bottom: 20px;
+        font-weight: 400;
+      }
+
+      .formula-header {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        font-weight: 500;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 8px;
+      }
+
+      .formula-header::before {
+        content: "∑";
+        font-size: 12px;
+        color: var(--gold);
+      }
+
+      .formula {
+        background: #0c0c10;
+        border: 1px solid rgba(201, 168, 76, 0.12);
+        border-left: 2px solid var(--gold);
+        border-radius: 0 4px 4px 0;
+        padding: 14px 16px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: #b8dcc8;
+        line-height: 1.8;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      /* ── METRICS CARDS — different accent ── */
+      .metrics-section .card::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          rgba(29, 233, 182, 0.6),
+          transparent
+        );
+      }
+
+      .metrics-section .formula-header::before {
+        content: "x̄";
+        color: var(--teal);
+      }
+
+      .metrics-section .formula {
+        border-left-color: var(--teal);
+        color: #aad8d0;
+      }
+
+      .metrics-section .card-type {
+        color: #1a7a65;
+      }
+
+      /* highlight range line */
+      .range-line {
+        display: flex;
+        justify-content: space-between;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9.5px;
+        color: var(--muted);
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(255, 255, 255, 0.04);
+      }
+
+      .range-line .good {
+        color: var(--teal);
+      }
+
+      .range-line .caution {
+        color: #f5a623;
+      }
+
+      /* ── MEMORY BOX ── */
+      .memory {
+        margin-top: 32px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 24px;
+        border: 1px solid rgba(201, 168, 76, 0.2);
+        background: linear-gradient(
+          135deg,
+          rgba(201, 168, 76, 0.04),
+          transparent
+        );
+        padding: 24px 28px;
+        position: relative;
+      }
+
+      .memory::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 40px;
+        height: 2px;
+        background: var(--gold);
       }
 
       .mem-label {
-        color: #6b7280;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--gold);
+        margin-bottom: 8px;
       }
 
       .mem-phrase {
-        color: #065f46;
+        font-family: "Playfair Display", serif;
+        font-style: italic;
+        font-size: 18px;
+        font-weight: 700;
+        color: #fff;
+        letter-spacing: -0.3px;
       }
 
-      .divider {
-        background: #a7f3d0;
+      .mem-sub {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 6px;
       }
 
-      .footer {
-        color: #9ca3af;
+      .mem-icon {
+        font-size: 36px;
+        opacity: 0.6;
       }
-    }
-  </style>
-</head>
 
-<body>
-  <div class="wrapper">
+      /* ── DIVIDER ── */
+      .hr {
+        height: 1px;
+        background: var(--line);
+        margin: 0 0 72px;
+        position: relative;
+      }
 
-    <!-- HEADER -->
-    <header class="header">
-      <div class="header-eyebrow">Machine Learning · Cheat Sheet</div>
-      <h1>Regression<br><span>Algorithms &amp; Metrics</span></h1>
-      <p>All regression algorithms &amp; evaluation metrics with definitions and formulas</p>
-    </header>
+      .hr::before {
+        content: "II";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: var(--ink);
+        padding: 0 16px;
+        font-family: "Playfair Display", serif;
+        font-size: 13px;
+        color: var(--muted);
+        letter-spacing: 3px;
+      }
 
-    <!-- ══════════════════════════════
-       SECTION 1 — ALGORITHMS
-  ══════════════════════════════ -->
-    <section class="section-block">
-      <div class="section-label">
-        <h2>Regression Algorithms</h2>
-        <span class="pill">8 algorithms</span>
-      </div>
-      <div class="goal-banner">
-        🎯 Predict a continuous numeric value from input features
-      </div>
+      /* ── ALGO TYPE BADGES (subtle top bar) ── */
+      .card.linear::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          rgba(201, 168, 76, 0.7),
+          transparent
+        );
+      }
 
-      <div class="algo-grid">
+      .card.regularized::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          rgba(255, 107, 107, 0.6),
+          transparent
+        );
+      }
 
-        <!-- 1. Linear Regression -->
-        <div class="algo-card">
-          <div class="algo-name">Linear Regression</div>
-          <span class="algo-type">Linear</span>
-          <div class="algo-desc">Models the relationship between features and a continuous target as a linear function.
-            Minimizes the sum of squared residuals (OLS). Assumes linearity and independence.</div>
-          <div class="formula-label">📐 Formula / Equation</div>
-          <div class="formula-box">ŷ = w₀ + w₁x₁ + ... + wₙxₙ
-            = wᵀx + b
+      .card.margin::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          rgba(130, 80, 255, 0.6),
+          transparent
+        );
+      }
 
-            OLS Cost: J = Σ(yᵢ - ŷᵢ)² / 2m
+      .card.tree::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(90deg, rgba(0, 200, 100, 0.5), transparent);
+      }
 
-            Closed form: w = (XᵀX)⁻¹ Xᵀy</div>
+      .card.ensemble::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: linear-gradient(
+          90deg,
+          rgba(29, 233, 182, 0.6),
+          transparent
+        );
+      }
+
+      /* ── RESPONSIVE ── */
+      @media (max-width: 720px) {
+        .wrapper {
+          padding: 40px 16px 64px;
+        }
+
+        .header {
+          grid-template-columns: 1fr;
+        }
+
+        .header-right {
+          text-align: left;
+        }
+
+        .header-stats {
+          justify-content: flex-start;
+        }
+
+        .header-desc {
+          text-align: left;
+          max-width: 100%;
+        }
+
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .section-header {
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        .memory {
+          grid-template-columns: 1fr;
+        }
+
+        .mem-icon {
+          display: none;
+        }
+
+        .footer {
+          flex-direction: column;
+          gap: 12px;
+        }
+      }
+
+      @media print {
+        body {
+          background: #fff;
+          color: #111;
+        }
+
+        .card,
+        .formula {
+          background: #f9f9f9 !important;
+          border-color: #ddd !important;
+        }
+
+        .card-name,
+        h1,
+        .section-title {
+          color: #111 !important;
+        }
+
+        .formula {
+          color: #1a5c3a !important;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="wrapper">
+      <!-- SECTION 1: ALGORITHMS -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">Regression Algorithms</h2>
+          <span class="section-tag">Supervised · Continuous Output</span>
+        </div>
+        <div class="goal-line">
+          Predict a continuous numeric value from input features
         </div>
 
-        <!-- 2. Polynomial Regression -->
-        <div class="algo-card">
-          <div class="algo-name">Polynomial Regression</div>
-          <span class="algo-type">Linear (extended)</span>
-          <div class="algo-desc">Extends linear regression by adding polynomial terms of features, allowing it to
-            capture non-linear relationships while still using a linear model.</div>
-          <div class="formula-label">📐 Formula / Equation</div>
-          <div class="formula-box">ŷ = w₀ + w₁x + w₂x² + ... + wₙxⁿ
+        <div class="grid">
+          <!-- 1. Linear -->
+          <div class="card linear" data-num="01">
+            <div class="card-type">Linear</div>
+            <div class="card-name">Linear Regression</div>
+            <div class="card-desc">
+              Models feature–target relationships as a linear function.
+              Minimizes the sum of squared residuals (OLS). Assumes linearity,
+              independence, and homoscedasticity.
+            </div>
+            <div class="formula-header">Formula</div>
+            <div class="formula">
+              ŷ = w₀ + w₁x₁ + ... + wₙxₙ = wᵀx + b OLS Cost: J = Σ(yᵢ − ŷᵢ)² /
+              2m Closed form: w = (XᵀX)⁻¹ Xᵀy
+            </div>
+          </div>
 
-            Feature transform:
-            φ(x) = [1, x, x², ..., xⁿ]
+          <!-- 2. Polynomial -->
+          <div class="card linear" data-num="02">
+            <div class="card-type">Linear (Extended)</div>
+            <div class="card-name">Polynomial Regression</div>
+            <div class="card-desc">
+              Extends linear regression with polynomial feature terms, enabling
+              non-linear relationships while keeping a linear model under the
+              hood.
+            </div>
+            <div class="formula-header">Formula</div>
+            <div class="formula">
+              ŷ = w₀ + w₁x + w₂x² + ... + wₙxⁿ φ(x) = [1, x, x², ..., xⁿ] Fit: ŷ
+              = wᵀφ(x)
+            </div>
+          </div>
 
-            Fit: ŷ = wᵀφ(x)</div>
+          <!-- 3. Ridge -->
+          <div class="card regularized" data-num="03">
+            <div class="card-type">Regularized · L2</div>
+            <div class="card-name">Ridge Regression</div>
+            <div class="card-desc">
+              Adds an L2 penalty on weights to prevent overfitting. Shrinks
+              coefficients toward zero but rarely eliminates them entirely.
+              Ideal for multicollinear data.
+            </div>
+            <div class="formula-header">Formula</div>
+            <div class="formula">
+              J = Σ(yᵢ − ŷᵢ)² + λΣwⱼ² Closed form: w = (XᵀX + λI)⁻¹ Xᵀy
+            </div>
+          </div>
+
+          <!-- 4. Lasso -->
+          <div class="card regularized" data-num="04">
+            <div class="card-type">Regularized · L1</div>
+            <div class="card-name">Lasso Regression</div>
+            <div class="card-desc">
+              L1 regularization that can shrink coefficients to exactly zero,
+              performing automatic feature selection. Solved via coordinate
+              descent — no closed form.
+            </div>
+            <div class="formula-header">Formula</div>
+            <div class="formula">
+              J = Σ(yᵢ − ŷᵢ)² + λΣ|wⱼ| Coordinate descent (no closed form)
+              Sparse w → automatic feature selection
+            </div>
+          </div>
+
+          <!-- 5. SVR -->
+          <div class="card margin" data-num="05">
+            <div class="card-type">Margin-Based</div>
+            <div class="card-name">Support Vector Regression</div>
+            <div class="card-desc">
+              Fits a function within an ε-tube around the data — points inside
+              incur no loss. Uses the kernel trick for non-linear regression on
+              complex distributions.
+            </div>
+            <div class="formula-header">Formula</div>
+            <div class="formula">
+              Minimize: ½‖w‖² + C·Σ(ξᵢ + ξᵢ*) Subject to: yᵢ − wᵀxᵢ − b ≤ ε + ξᵢ
+              wᵀxᵢ + b − yᵢ ≤ ε + ξᵢ*
+            </div>
+          </div>
+
+          <!-- 6. Decision Tree -->
+          <div class="card tree" data-num="06">
+            <div class="card-type">Tree-Based</div>
+            <div class="card-name">Decision Tree Regression</div>
+            <div class="card-desc">
+              Partitions feature space into rectangular regions and predicts the
+              mean target value in each leaf. Splits minimize MSE at each node.
+              Prone to overfitting.
+            </div>
+            <div class="formula-header">Formula</div>
+            <div class="formula">
+              Split: argmin_t [MSE(left) + MSE(right)] MSE = Σ(yᵢ − ȳ)² / n Leaf
+              prediction: ŷ = mean(y in leaf)
+            </div>
+          </div>
+
+          <!-- 7. Random Forest -->
+          <div class="card ensemble" data-num="07">
+            <div class="card-type">Ensemble · Bagging</div>
+            <div class="card-name">Random Forest Regression</div>
+            <div class="card-desc">
+              Ensemble of decision trees trained on bootstrapped samples with
+              random feature subsets. Final prediction is the average of all
+              trees — reduces variance greatly.
+            </div>
+            <div class="formula-header">Formula</div>
+            <div class="formula">
+              ŷ = mean( {T₁(x), T₂(x), ..., Tₙ(x)} ) Variance: Var(avg) ≈ σ²/n
+              (assuming uncorrelated trees)
+            </div>
+          </div>
+
+          <!-- 8. Gradient Boosting -->
+          <div class="card ensemble" data-num="08">
+            <div class="card-type">Ensemble · Boosting</div>
+            <div class="card-name">Gradient Boosting</div>
+            <div class="card-desc">
+              Iteratively adds weak trees to correct residuals. XGBoost extends
+              this with second-order Taylor expansion of the loss and L2 tree
+              regularization.
+            </div>
+            <div class="formula-header">Formula</div>
+            <div class="formula">
+              F₀(x) = mean(y) Fₘ(x) = Fₘ₋₁(x) + η · hₘ(x) Residual: rᵢ = yᵢ −
+              Fₘ₋₁(xᵢ) hₘ fits residuals at each step
+            </div>
+          </div>
+        </div>
+        <!-- /grid -->
+
+        <!-- Memory -->
+        <div class="memory">
+          <div>
+            <div class="mem-label">Mnemonic · Algorithm Order</div>
+            <div class="mem-phrase">
+              "Little Pink Rabbits Sing During Rainy Grey Skies"
+            </div>
+            <div class="mem-sub">
+              Linear · Polynomial · Ridge · SVR · Decision Tree · Random Forest
+              · Gradient Boosting
+            </div>
+          </div>
+          <div class="mem-icon">💡</div>
+        </div>
+      </section>
+
+      <div class="hr"></div>
+
+      <!-- SECTION 2: METRICS -->
+      <section class="section metrics-section">
+        <div class="section-header">
+          <h2 class="section-title">Evaluation Metrics</h2>
+          <span class="section-tag">Continuous · Error Measurement</span>
+        </div>
+        <div class="goal-line">
+          Measure how close predicted values are to actual numeric values
         </div>
 
-        <!-- 3. Ridge Regression -->
-        <div class="algo-card">
-          <div class="algo-name">Ridge Regression (L2)</div>
-          <span class="algo-type">Regularized</span>
-          <div class="algo-desc">Linear regression with L2 regularization. Penalizes large weights to prevent
-            overfitting, shrinking coefficients toward zero but rarely to exactly zero.</div>
-          <div class="formula-label">📐 Formula / Equation</div>
-          <div class="formula-box">J = Σ(yᵢ - ŷᵢ)² + λΣwⱼ²
+        <div class="grid">
+          <!-- MAE -->
+          <div class="card" data-num="01">
+            <div class="card-type">Absolute Error</div>
+            <div class="card-name">MAE — Mean Absolute Error</div>
+            <div class="card-desc">
+              Average of absolute differences between predictions and actuals.
+              Robust to outliers. Interpretable — error is in the same unit as
+              the target.
+            </div>
+            <div class="formula-header">Formula</div>
+            <div class="formula">
+              MAE = (1/n) · Σ |yᵢ − ŷᵢ| Linear penalty per error
+            </div>
+            <div class="range-line">
+              <span>Range: [0, ∞)</span>
+              <span class="good">↓ Lower is better</span>
+            </div>
+          </div>
 
-            Closed form:
-            w = (XᵀX + λI)⁻¹ Xᵀy
+          <!-- MSE -->
+          <div class="card" data-num="02">
+            <div class="card-type">Squared Error</div>
+            <div class="card-name">MSE — Mean Squared Error</div>
+            <div class="card-desc">
+              Average of squared differences. Amplifies large errors — useful
+              when big mistakes must be penalized heavily. Default loss in
+              linear regression.
+            </div>
+            <div class="formula-header">Formula</div>
+            <div class="formula">
+              MSE = (1/n) · Σ (yᵢ − ŷᵢ)² Quadratic penalty → outlier-sensitive
+            </div>
+            <div class="range-line">
+              <span>Range: [0, ∞) · Unit: target²</span>
+              <span class="good">↓ Lower is better</span>
+            </div>
+          </div>
 
-            λ = regularization strength</div>
+          <!-- RMSE -->
+          <div class="card" data-num="03">
+            <div class="card-type">Scaled Squared Error</div>
+            <div class="card-name">RMSE — Root Mean Squared Error</div>
+            <div class="card-desc">
+              Square root of MSE — restores error to the original unit scale.
+              More interpretable than MSE while still penalizing large errors
+              more than MAE.
+            </div>
+            <div class="formula-header">Formula</div>
+            <div class="formula">RMSE = √[ (1/n) · Σ (yᵢ − ŷᵢ)² ] = √MSE</div>
+            <div class="range-line">
+              <span>Range: [0, ∞)</span>
+              <span class="good">↓ Lower is better</span>
+            </div>
+          </div>
+
+          <!-- R² -->
+          <div class="card" data-num="04">
+            <div class="card-type">Explained Variance</div>
+            <div class="card-name">R² — Coefficient of Determination</div>
+            <div class="card-desc">
+              Proportion of variance in the target explained by the model. R²=1
+              is a perfect fit; R²=0 means no better than predicting the mean.
+            </div>
+            <div class="formula-header">Formula</div>
+            <div class="formula">
+              R² = 1 − SS_res / SS_tot SS_res = Σ(yᵢ − ŷᵢ)² ← residuals SS_tot =
+              Σ(yᵢ − ȳ)² ← total variance
+            </div>
+            <div class="range-line">
+              <span>Range: (−∞, 1]</span>
+              <span class="good">↑ Higher is better</span>
+            </div>
+          </div>
+
+          <!-- Adjusted R² -->
+          <div class="card" data-num="05">
+            <div class="card-type">Penalized Variance</div>
+            <div class="card-name">Adjusted R²</div>
+            <div class="card-desc">
+              Penalizes R² for adding features that don't genuinely improve the
+              model. Prevents inflation from irrelevant predictors. Preferred
+              for multi-feature models.
+            </div>
+            <div class="formula-header">Formula</div>
+            <div class="formula">
+              R²_adj = 1 − (1−R²)·(n−1)/(n−p−1) n = samples · p = predictors
+              Increases only if new features help
+            </div>
+            <div class="range-line">
+              <span>Range: (−∞, 1]</span>
+              <span class="good">↑ Higher is better</span>
+            </div>
+          </div>
+
+          <!-- MAPE -->
+          <div class="card" data-num="06">
+            <div class="card-type">Relative Error</div>
+            <div class="card-name">MAPE — Mean Absolute % Error</div>
+            <div class="card-desc">
+              Expresses error as a percentage of actual values — useful when
+              comparing across datasets of different scales. Undefined when
+              actuals are zero.
+            </div>
+            <div class="formula-header">Formula</div>
+            <div class="formula">
+              MAPE = (100/n) · Σ |yᵢ − ŷᵢ| / |yᵢ| Unit: percentage (%)
+            </div>
+            <div class="range-line">
+              <span>Range: [0, ∞)</span>
+              <span class="caution">⚠ Undefined if yᵢ = 0</span>
+            </div>
+          </div>
+
+          <!-- Huber -->
+          <div class="card" data-num="07">
+            <div class="card-type">Hybrid Loss</div>
+            <div class="card-name">Huber Loss</div>
+            <div class="card-desc">
+              Combines MSE and MAE. Acts like MSE for small errors (sensitive,
+              differentiable) and like MAE for large errors (outlier-robust).
+              Threshold δ is a hyperparameter.
+            </div>
+            <div class="formula-header">Formula</div>
+            <div class="formula">
+              Lδ(r) = { ½r² if |r| ≤ δ ← MSE zone δ·|r| − ½δ² if |r| > δ ← MAE
+              zone } r = yᵢ − ŷᵢ
+            </div>
+            <div class="range-line">
+              <span>Hyperparameter: δ</span>
+              <span class="good">Robust + smooth</span>
+            </div>
+          </div>
+
+          <!-- Max Error -->
+          <div class="card" data-num="08">
+            <div class="card-type">Worst-Case Error</div>
+            <div class="card-name">Max Error</div>
+            <div class="card-desc">
+              The single worst prediction error in the dataset. Critical in
+              safety-critical systems where even one large deviation can have
+              serious consequences.
+            </div>
+            <div class="formula-header">Formula</div>
+            <div class="formula">
+              Max Error = max( |yᵢ − ŷᵢ| ) Captures the single worst prediction
+            </div>
+            <div class="range-line">
+              <span>Range: [0, ∞)</span>
+              <span class="good">Safety-critical use</span>
+            </div>
+          </div>
         </div>
-
-        <!-- 4. Lasso Regression -->
-        <div class="algo-card">
-          <div class="algo-name">Lasso Regression (L1)</div>
-          <span class="algo-type">Regularized</span>
-          <div class="algo-desc">Linear regression with L1 regularization. Unlike Ridge, Lasso can shrink coefficients
-            exactly to zero, performing automatic feature selection.</div>
-          <div class="formula-label">📐 Formula / Equation</div>
-          <div class="formula-box">J = Σ(yᵢ - ŷᵢ)² + λΣ|wⱼ|
-
-            Solved via coordinate descent
-            (no closed-form solution)
-
-            Sparse w → automatic feature selection</div>
-        </div>
-
-        <!-- 5. SVR -->
-        <div class="algo-card">
-          <div class="algo-name">Support Vector Regression (SVR)</div>
-          <span class="algo-type">Margin-based</span>
-          <div class="algo-desc">Fits a function within an ε-tube around the data. Points inside the tube incur no loss.
-            Uses kernel trick for non-linear regression.</div>
-          <div class="formula-label">📐 Formula / Equation</div>
-          <div class="formula-box">Minimize: ½‖w‖² + C·Σ(ξᵢ + ξᵢ*)
-
-            Subject to:
-            yᵢ - wᵀxᵢ - b ≤ ε + ξᵢ
-            wᵀxᵢ + b - yᵢ ≤ ε + ξᵢ*</div>
-        </div>
-
-        <!-- 6. Decision Tree -->
-        <div class="algo-card">
-          <div class="algo-name">Decision Tree Regression</div>
-          <span class="algo-type">Tree-based</span>
-          <div class="algo-desc">Partitions feature space into regions and predicts the mean of training samples in each
-            region. Splits are chosen to minimize variance (MSE) in child nodes.</div>
-          <div class="formula-label">📐 Formula / Equation</div>
-          <div class="formula-box">Split criterion:
-            MSE = Σ(yᵢ - ȳ)² / n
-
-            Leaf prediction:
-            ŷ = mean(y in leaf)
-
-            Split: argmin_t [MSE(left) + MSE(right)]</div>
-        </div>
-
-        <!-- 7. Random Forest -->
-        <div class="algo-card">
-          <div class="algo-name">Random Forest Regression</div>
-          <span class="algo-type">Ensemble</span>
-          <div class="algo-desc">Ensemble of decision tree regressors trained on bootstrapped samples with random
-            feature subsets. Final prediction is the average of all tree outputs.</div>
-          <div class="formula-label">📐 Formula / Equation</div>
-          <div class="formula-box">Prediction = mean(
-            {Tree₁(x), Tree₂(x), ..., Treeₙ(x)}
-            )
-
-            Variance reduction:
-            Var(avg) ≈ σ²/n (uncorrelated trees)</div>
-        </div>
-
-        <!-- 8. Gradient Boosting -->
-        <div class="algo-card">
-          <div class="algo-name">Gradient Boosting Regression</div>
-          <span class="algo-type">Ensemble</span>
-          <div class="algo-desc">Iteratively adds trees to correct residuals of the current model. XGBoost adds
-            second-order Taylor expansion of the loss for faster, more accurate convergence.</div>
-          <div class="formula-label">📐 Formula / Equation</div>
-          <div class="formula-box">F₀(x) = mean(y)
-            Fₘ(x) = Fₘ₋₁(x) + η·hₘ(x)
-
-            Residual: rᵢ = yᵢ - Fₘ₋₁(xᵢ)
-            hₘ fits residuals
-
-            XGBoost adds L2 tree regularization</div>
-        </div>
-
-      </div><!-- /algo-grid -->
-
-      <!-- Memory trick -->
-      <div class="memory-box">
-        <span class="mem-icon">💡</span>
-        <div>
-          <div class="mem-label">Memory Trick</div>
-          <div class="mem-phrase">"Little Pink Rabbits Sing During Rainy Grey-Skies"</div>
-        </div>
-      </div>
-
-    </section><!-- /section algorithms -->
-
-    <div class="divider"></div>
-
-    <!-- ══════════════════════════════
-       SECTION 2 — METRICS
-  ══════════════════════════════ -->
-    <section class="section-block">
-      <div class="section-label">
-        <h2>Evaluation Metrics</h2>
-        <span class="pill">8 metrics</span>
-      </div>
-      <div class="goal-banner">
-        🎯 Measure how close predicted values are to actual numeric values
-      </div>
-
-      <div class="metrics-grid">
-
-        <!-- MAE -->
-        <div class="metric-card">
-          <div class="metric-name">MAE — Mean Absolute Error</div>
-          <div class="metric-desc">Average of absolute differences between predicted and actual values. Robust to
-            outliers. Error is in the same unit as the target variable.</div>
-          <div class="formula-label">📐 Formula / Equation</div>
-          <div class="formula-box">MAE = (1/n) · Σ |yᵢ - ŷᵢ|
-
-            Linear penalty for each error
-
-            Range: [0, ∞) Lower = better
-            Unit: same as target</div>
-        </div>
-
-        <!-- MSE -->
-        <div class="metric-card">
-          <div class="metric-name">MSE — Mean Squared Error</div>
-          <div class="metric-desc">Average of squared differences. Amplifies large errors due to squaring — useful when
-            big mistakes must be penalized more. Default loss in Linear Regression.</div>
-          <div class="formula-label">📐 Formula / Equation</div>
-          <div class="formula-box">MSE = (1/n) · Σ (yᵢ - ŷᵢ)²
-
-            Quadratic penalty → sensitive to outliers
-
-            Range: [0, ∞) Lower = better
-            Unit: target²</div>
-        </div>
-
-        <!-- RMSE -->
-        <div class="metric-card">
-          <div class="metric-name">RMSE — Root Mean Squared Error</div>
-          <div class="metric-desc">Square root of MSE. Returns error to the original unit scale. More interpretable than
-            MSE while still penalizing large errors more than MAE.</div>
-          <div class="formula-label">📐 Formula / Equation</div>
-          <div class="formula-box">RMSE = √[ (1/n) · Σ (yᵢ - ŷᵢ)² ]
-
-            RMSE = √MSE
-
-            Range: [0, ∞) Lower = better
-            Unit: same as target</div>
-        </div>
-
-        <!-- R² -->
-        <div class="metric-card">
-          <div class="metric-name">R² — Coefficient of Determination</div>
-          <div class="metric-desc">Measures the proportion of variance in the target explained by the model. R²=1 is a
-            perfect fit; R²=0 means no better than predicting the mean.</div>
-          <div class="formula-label">📐 Formula / Equation</div>
-          <div class="formula-box">R² = 1 - SS_res / SS_tot
-
-            SS_res = Σ(yᵢ - ŷᵢ)² ← residuals
-            SS_tot = Σ(yᵢ - ȳ)² ← total variance
-
-            Range: (-∞, 1] Higher = better</div>
-        </div>
-
-        <!-- Adjusted R² -->
-        <div class="metric-card">
-          <div class="metric-name">Adjusted R²</div>
-          <div class="metric-desc">Penalizes R² for adding features that don't improve the model. Prevents artificially
-            inflating R² by adding irrelevant predictors. Preferred for multi-feature models.</div>
-          <div class="formula-label">📐 Formula / Equation</div>
-          <div class="formula-box">R²_adj = 1 - (1-R²)·(n-1)/(n-p-1)
-
-            n = number of samples
-            p = number of predictors
-
-            Increases only if new features genuinely help</div>
-        </div>
-
-        <!-- MAPE -->
-        <div class="metric-card">
-          <div class="metric-name">MAPE — Mean Absolute Percentage Error</div>
-          <div class="metric-desc">Expresses error as a percentage of actual values. Useful for comparing model
-            performance across datasets with different scales. Undefined when actual values are zero.</div>
-          <div class="formula-label">📐 Formula / Equation</div>
-          <div class="formula-box">MAPE = (100/n) · Σ |yᵢ - ŷᵢ| / |yᵢ|
-
-            Unit: percentage (%)
-
-            Range: [0, ∞) Lower = better
-            Caution: undefined if yᵢ = 0</div>
-        </div>
-
-        <!-- Huber Loss -->
-        <div class="metric-card">
-          <div class="metric-name">Huber Loss</div>
-          <div class="metric-desc">Hybrid of MSE and MAE. Behaves like MSE for small errors (sensitive, differentiable)
-            and like MAE for large errors (robust to outliers). Controlled by threshold δ.</div>
-          <div class="formula-label">📐 Formula / Equation</div>
-          <div class="formula-box">Lδ(r) = {
-            ½r² if |r| ≤ δ ← MSE zone
-            δ·|r| - ½δ² if |r| > δ ← MAE zone
-            }
-
-            r = yᵢ - ŷᵢ δ = threshold hyperparameter</div>
-        </div>
-
-        <!-- Max Error -->
-        <div class="metric-card">
-          <div class="metric-name">Max Error</div>
-          <div class="metric-desc">The worst-case prediction error — largest absolute deviation between any predicted
-            and actual value. Critical in safety systems where no single prediction can be far off.</div>
-          <div class="formula-label">📐 Formula / Equation</div>
-          <div class="formula-box">Max Error = max(|yᵢ - ŷᵢ|)
-
-            Captures the single worst prediction
-
-            Range: [0, ∞) Lower = better
-            Use: safety-critical applications</div>
-        </div>
-
-      </div><!-- /metrics-grid -->
-
-    </section><!-- /section metrics -->
-
-    <p class="footer">Regression · Algorithms &amp; Metrics · Cheat Sheet</p>
-
-  </div><!-- /wrapper -->
-</body>
-
+        <!-- /grid -->
+      </section>
+    </div>
+  </body>
 </html>
