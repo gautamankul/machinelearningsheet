@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi-Linear Regression & PCA — ML Notes</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;500&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a2e;
+    --paper: #faf8f2;
+    --paper-dark: #f0ede3;
+    --pink-border: #f4a0b5;
+    --accent: #c0392b;
+    --blue-ink: #1a3a6b;
+    --green-ink: #1a5c3a;
+    --red-note: #b03030;
+    --rule: #d4cfc0;
+    --shadow: rgba(0,0,0,0.08);
+    --box-border: #444;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #e8e0d0;
+    background-image: 
+      radial-gradient(circle at 20% 50%, rgba(244,160,181,0.15) 0%, transparent 60%),
+      radial-gradient(circle at 80% 20%, rgba(26,58,107,0.08) 0%, transparent 50%);
+    font-family: 'Lato', sans-serif;
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 40px 20px 80px;
+  }
+
+  .page-title {
+    text-align: center;
+    margin-bottom: 50px;
+    animation: fadeDown 0.8s ease both;
+  }
+  .page-title h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    color: var(--blue-ink);
+    letter-spacing: -0.5px;
+  }
+  .page-title p {
+    font-size: 0.85rem;
+    color: #888;
+    margin-top: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .notebook {
+    max-width: 860px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+  }
+
+  /* === NOTEBOOK PAGE === */
+  .page {
+    background: var(--paper);
+    border-radius: 4px 4px 4px 4px;
+    box-shadow: 
+      0 2px 4px var(--shadow),
+      0 8px 24px rgba(0,0,0,0.12),
+      inset 0 0 0 1px rgba(0,0,0,0.04);
+    position: relative;
+    overflow: hidden;
+    animation: riseUp 0.6s ease both;
+  }
+  .page:nth-child(2) { animation-delay: 0.1s; }
+  .page:nth-child(3) { animation-delay: 0.2s; }
+  .page:nth-child(4) { animation-delay: 0.3s; }
+  .page:nth-child(5) { animation-delay: 0.4s; }
+  .page:nth-child(6) { animation-delay: 0.5s; }
+
+  /* Pink left margin */
+  .page::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 6px;
+    background: var(--pink-border);
+  }
+
+  /* Ruled lines */
+  .page-inner {
+    padding: 36px 48px 40px 54px;
+    background-image: repeating-linear-gradient(
+      transparent,
+      transparent 31px,
+      var(--rule) 31px,
+      var(--rule) 32px
+    );
+    background-position: 0 12px;
+    line-height: 32px;
+  }
+
+  /* Section header bar */
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--blue-ink);
+    border-bottom: 2px solid var(--blue-ink);
+    padding-bottom: 2px;
+    margin-bottom: 20px;
+    display: inline-block;
+    letter-spacing: -0.3px;
+  }
+  .section-title .hash {
+    color: var(--accent);
+    margin-right: 6px;
+    font-style: italic;
+  }
+
+  .subsection {
+    font-family: 'Lato', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--blue-ink);
+    text-decoration: underline;
+    margin: 18px 0 8px;
+    text-underline-offset: 3px;
+  }
+
+  p, .body-text {
+    font-size: 0.92rem;
+    color: var(--ink);
+    margin-bottom: 6px;
+    line-height: 32px;
+  }
+
+  /* Boxed formula */
+  .formula-box {
+    display: inline-block;
+    border: 2px solid var(--box-border);
+    padding: 8px 20px;
+    margin: 10px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1rem;
+    color: var(--ink);
+    background: var(--paper);
+    border-radius: 2px;
+    letter-spacing: 0.5px;
+  }
+  .formula-box .frac {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    vertical-align: middle;
+    font-size: 0.85rem;
+    line-height: 1.2;
+    margin: 0 2px;
+  }
+  .formula-box .frac .num { border-bottom: 1px solid var(--ink); padding-bottom: 1px; }
+
+  /* Where block */
+  .where-block {
+    margin-left: 24px;
+    margin-top: 4px;
+    margin-bottom: 8px;
+  }
+  .where-block .where-row {
+    display: flex;
+    gap: 8px;
+    font-size: 0.9rem;
+    line-height: 32px;
+  }
+  .where-block .term {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--blue-ink);
+    font-weight: 500;
+    min-width: 60px;
+  }
+
+  /* Bullet list */
+  .note-list {
+    list-style: none;
+    margin-left: 16px;
+  }
+  .note-list li {
+    font-size: 0.9rem;
+    line-height: 32px;
+    padding-left: 18px;
+    position: relative;
+    color: var(--ink);
+  }
+  .note-list li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: var(--ink);
+    font-size: 1rem;
+  }
+  .note-list li.green { color: var(--green-ink); }
+  .note-list li.red { color: var(--red-note); }
+
+  /* Numbered list */
+  .note-list-num {
+    list-style: none;
+    margin-left: 12px;
+  }
+  .note-list-num li {
+    font-size: 0.9rem;
+    line-height: 32px;
+    padding-left: 24px;
+    position: relative;
+  }
+  .note-list-num li .num-label {
+    position: absolute;
+    left: 0;
+    font-weight: 700;
+    color: var(--blue-ink);
+  }
+
+  /* Note callout */
+  .note-callout {
+    margin-top: 12px;
+    font-size: 0.88rem;
+    line-height: 32px;
+  }
+  .note-callout .note-label {
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    margin-right: 6px;
+  }
+  .note-callout.green { color: var(--green-ink); }
+  .note-callout.red { color: var(--red-note); }
+  .note-callout.blue { color: var(--blue-ink); }
+
+  /* Table */
+  .notebook-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    margin: 10px 0;
+  }
+  .notebook-table th, .notebook-table td {
+    border: 1.5px solid var(--box-border);
+    padding: 5px 14px;
+    text-align: left;
+    line-height: 1.5;
+  }
+  .notebook-table th {
+    font-weight: 700;
+    background: var(--paper-dark);
+    color: var(--blue-ink);
+  }
+  .notebook-table td.check::after { content: ' ✓'; color: var(--green-ink); }
+  .notebook-table td.cross::after { content: ' ✗'; color: var(--accent); }
+
+  /* Code snippet */
+  .code-block {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    color: var(--green-ink);
+    line-height: 28px;
+    margin: 6px 0 6px 12px;
+  }
+
+  /* VIF formula special */
+  .vif-formula {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.95rem;
+    background: var(--paper);
+    border: 2px solid var(--box-border);
+    padding: 8px 18px;
+    margin: 8px 0;
+    border-radius: 2px;
+  }
+
+  /* Divider */
+  .page-divider {
+    height: 1px;
+    background: var(--rule);
+    margin: 16px 0;
+  }
+
+  /* Intuition block */
+  .intuition-label {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1rem;
+    color: var(--ink);
+    border-bottom: 1.5px solid var(--ink);
+    display: inline-block;
+    margin-bottom: 8px;
+  }
+
+  /* Important callout */
+  .important-box {
+    border-left: 3px solid var(--accent);
+    padding-left: 14px;
+    margin: 10px 0;
+    color: var(--red-note);
+    font-size: 0.9rem;
+    line-height: 32px;
+  }
+  .important-box .imp-label {
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    color: var(--red-note);
+  }
+
+  /* Step styling */
+  .step-row {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    line-height: 32px;
+    font-size: 0.9rem;
+  }
+  .step-num {
+    font-weight: 700;
+    color: var(--blue-ink);
+    font-size: 0.9rem;
+    min-width: 20px;
+  }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes riseUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* TOC sticky nav */
+  .toc {
+    background: var(--blue-ink);
+    color: #fff;
+    border-radius: 4px;
+    padding: 18px 28px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 24px;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 16px rgba(26,58,107,0.3);
+    animation: fadeDown 0.5s ease both;
+  }
+  .toc-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--pink-border);
+    width: 100%;
+    margin-bottom: 4px;
+  }
+  .toc a {
+    color: rgba(255,255,255,0.85);
+    font-size: 0.82rem;
+    text-decoration: none;
+    font-family: 'Lato', sans-serif;
+    transition: color 0.2s;
+  }
+  .toc a:hover { color: var(--pink-border); }
+
+  sup { font-size: 0.7em; vertical-align: super; }
+  sub { font-size: 0.7em; vertical-align: sub; }
+</style>
+</head>
+<body>
+
+<div class="page-title">
+  <h1>Machine Learning Notes</h1>
+  <p>Multi-Linear Regression · Multi-collinearity · PCA</p>
+</div>
+
+<div class="notebook">
+
+  <!-- TOC -->
+  <nav class="toc">
+    <span class="toc-label">Contents</span>
+    <a href="#mlr">Multi-Linear Regression</a>
+    <a href="#geometric">Geometric Understanding</a>
+    <a href="#matrix">Matrix Form</a>
+    <a href="#multicollin">Multi-Collinearity</a>
+    <a href="#pvalue">p-Value</a>
+    <a href="#vif">VIF</a>
+    <a href="#corrmatrix">Correlation Matrix</a>
+    <a href="#solutions">Solutions</a>
+    <a href="#pca">PCA</a>
+  </nav>
+
+  <!-- PAGE 1: Multi-Linear Regression -->
+  <div class="page" id="mlr">
+    <div class="page-inner">
+      <div class="section-title"><span class="hash">≑</span>Multi-Linear Regression</div>
+
+      <p>In <strong>Simple regression</strong>, we predict a value using <em>one</em> input (feature):</p>
+      <div class="formula-box">Y = mx + b</div>
+
+      <p style="margin-top:10px;">But, in <strong>Multiple linear regression</strong>, we use <em>multiple</em> inputs:</p>
+      <div class="formula-box">y = β₀ + β₁x₁ + β₂x₂ + · · · + βₙxₙ</div>
+
+      <div class="where-block" style="margin-top:10px;">
+        <div class="where-row"><span class="term">β₀</span><span>= Intercepter (bias)</span></div>
+        <div class="where-row"><span class="term">β₁, β₂</span><span>= Coefficient / slope / variance</span></div>
+        <div class="where-row"><span class="term">x₁, x₂</span><span>= features value</span></div>
+      </div>
+
+      <div class="page-divider"></div>
+
+      <div class="intuition-label">Intuition:—</div>
+      <p>Instead of predicting something with just one factor, you use <strong>many factors together</strong>.</p>
+
+      <div class="page-divider"></div>
+
+      <p><strong>Example</strong> — Predicting House Price:</p>
+      <ul class="note-list" style="margin-top:4px;">
+        <li>Size (x₁)</li>
+        <li>No. of Bedrooms (x₂)</li>
+        <li>Location Score (x₃)</li>
+      </ul>
+
+      <div class="note-callout green" style="margin-top:14px;">
+        <span class="note-label">Note:—</span>When you use or add two or more variables, it may always increase the R² evaluation metrics.
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 2: Geometric + How it Works -->
+  <div class="page" id="geometric">
+    <div class="page-inner">
+      <div class="section-title"><span class="hash">#</span>Geometric Understanding</div>
+
+      <ul class="note-list">
+        <li>In Simple Regression → <strong>a line</strong></li>
+        <li>Multiple Regression → <strong>a plane</strong> (or hyperplane in higher dimensions)</li>
+        <li>Still coefficients obtained by minimizing the sum of square error <strong>(MSE)</strong></li>
+      </ul>
+
+      <div class="page-divider"></div>
+
+      <div class="section-title"><span class="hash">#</span>New Considerations</div>
+
+      <ul class="note-list">
+        <li>Model may <strong>'overfit'</strong> or become complex.</li>
+        <li>High train accuracy but <strong>low test accuracy</strong>.</li>
+        <li>Multi-collinearity can <strong>reduce accuracy</strong>.</li>
+      </ul>
+
+      <div class="page-divider"></div>
+
+      <div class="section-title"><span class="hash">#</span>How it Works</div>
+
+      <ul class="note-list">
+        <li>MLR finds the best coefficients (β values) that minimize error.</li>
+        <li>Minimize <strong>Mean Square Error</strong>:</li>
+      </ul>
+
+      <div style="margin: 8px 0 8px 20px;">
+        <div class="formula-box">
+          MSE = <span class="frac"><span class="num">1</span><span>n</span></span> Σ (y<sub>actual</sub> − y<sub>predicted</sub>)²
+        </div>
+      </div>
+
+      <div class="note-callout red">
+        The model adjusts β₁, β₂… until predictions are as close as possible.
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 3: Matrix Form + Assumptions -->
+  <div class="page" id="matrix">
+    <div class="page-inner">
+      <div class="section-title"><span class="hash">#</span>Matrix Form</div>
+
+      <p>Instead of writing long equations, we use matrix form:</p>
+      <div class="formula-box">Y = XB + ε</div>
+
+      <div class="where-block" style="margin-top:8px;">
+        <div class="where-row"><span class="term">Y</span><span>= output vector</span></div>
+        <div class="where-row"><span class="term">X</span><span>= input matrix</span></div>
+        <div class="where-row"><span class="term">β</span><span>= coefficients</span></div>
+        <div class="where-row"><span class="term">ε</span><span>= Error</span></div>
+      </div>
+
+      <div class="page-divider"></div>
+
+      <div class="subsection">Solution (Normal Equation):</div>
+      <div class="formula-box">β = (X<sup>T</sup>X)<sup>-1</sup> × X<sup>T</sup>Y</div>
+      <p style="margin-top:6px; font-style:italic; color:#555;">This is the Mathematical backbone of MLR.</p>
+
+      <div class="page-divider"></div>
+
+      <div class="section-title"><span class="hash">#</span>Assumptions of MLR</div>
+
+      <ol class="note-list-num">
+        <li><span class="num-label">1.</span>Linearity</li>
+        <li><span class="num-label">2.</span>No Multi-collinearity</li>
+        <li><span class="num-label">3.</span>Homoscedasticity</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- PAGE 4: Multi-Collinearity + p-value -->
+  <div class="page" id="multicollin">
+    <div class="page-inner">
+      <div class="section-title"><span class="hash">1.</span>Multi-Collinearity</div>
+
+      <ul class="note-list">
+        <li>When input variables are <strong>highly correlated</strong>, that phenomena is known as <strong>multi-collinearity</strong>.</li>
+        <li>Model gets confused, coefficients become <strong>unstable</strong>.</li>
+      </ul>
+
+      <div class="note-callout red" style="margin-top:10px;">
+        Before applying the Multi-collinearity fixing technique, we can check a particular feature and how much is required for our model. That concept is <strong>p-value</strong>.
+      </div>
+
+      <div class="page-divider"></div>
+
+      <div class="section-title" id="pvalue"><span class="hash">#</span>p-value</div>
+
+      <ul class="note-list">
+        <li>In Regression, the p-value tells us whether a feature has a <strong>significant relationship</strong> with the dependent variable.</li>
+        <li>The p-value tests null hypothesis that the coefficient of a predictor is equal to <strong>zero (no effect)</strong>.</li>
+      </ul>
+
+      <div class="subsection">Assumptions:—</div>
+      <ul class="note-list">
+        <li class="green">Low p-value (&lt; 0.5) → The feature <strong>significantly affects</strong>.</li>
+        <li class="red">High p-value (&gt; 0.5) → The feature does <strong>not</strong> have significant affects.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- PAGE 5: p-value table + formula + code -->
+  <div class="page">
+    <div class="page-inner">
+      <table class="notebook-table">
+        <thead>
+          <tr><th>Feature</th><th>Coefficient</th><th>p-value</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Size</td><td>5000</td><td class="check">0.09</td></tr>
+          <tr><td>Bedrooms</td><td>2000</td><td class="check">0.04</td></tr>
+          <tr><td>Distance to park</td><td>100</td><td class="cross">0.6</td></tr>
+        </tbody>
+      </table>
+
+      <div class="page-divider"></div>
+
+      <div class="subsection">Formula:—</div>
+      <p>It comes from a <strong>t-test</strong>:</p>
+      <div class="formula-box">
+        t = <span class="frac"><span class="num">β̂ − 0</span><span>SE(β̂)</span></span>
+      </div>
+
+      <div class="where-block" style="margin-top:6px;">
+        <div class="where-row"><span class="term">β̂</span><span>= estimated coefficient</span></div>
+        <div class="where-row"><span class="term">SE</span><span>= Standard Error</span></div>
+      </div>
+
+      <div class="note-callout red" style="margin-top:8px;">
+        <span class="note-label">Note:</span>Then this t-statistic is converted into a p-value.
+      </div>
+
+      <div class="page-divider"></div>
+
+      <p style="color:var(--accent); font-weight:700; font-size:0.88rem;">eg:—</p>
+      <div class="code-block">
+        import statsmodel.api as sm<br>
+        X = data[['size', 'Bedrooms']]<br>
+        y = data['price']<br>
+        X = sm.add_constant(X)  <span style="color:#888;"># add Intercept (β₀)</span><br>
+        model = sm.OLS(y, X).fit()<br>
+        print(model.summary())  <span style="color:#888;">or</span>  print(model.pvalues)
+      </div>
+
+      <div class="page-divider"></div>
+      <p style="font-size:0.85rem; color:#666; font-style:italic;">Output: Coef, Std Err, t, P&gt;|t| columns shown for const, Size, Bedrooms</p>
+    </div>
+  </div>
+
+  <!-- PAGE 6: VIF -->
+  <div class="page" id="vif">
+    <div class="page-inner">
+      <div class="section-title"><span class="hash">#</span>How to Detect Multi-Collinearity</div>
+
+      <ol class="note-list-num">
+        <li><span class="num-label">a.</span>Variance Inflation Factor (VIF)</li>
+        <li><span class="num-label">b.</span>Correlation Matrix / Heatmap</li>
+        <li><span class="num-label">c.</span>Condition Number</li>
+        <li><span class="num-label">d.</span>Unstable Coefficient Signs</li>
+      </ol>
+
+      <div class="page-divider"></div>
+
+      <div class="subsection">1. Variance Inflation Factor (VIF):—</div>
+
+      <ul class="note-list" style="margin-bottom:8px;">
+        <li>VIF measures how much the variance of a coefficient is <strong>inflated due to multi-collinearity</strong>.</li>
+      </ul>
+
+      <div class="formula-box">
+        VIF<sub>j</sub> = <span class="frac"><span class="num">1</span><span>1 − R²<sub>j</sub></span></span>
+      </div>
+
+      <div class="where-block" style="margin-top:6px;">
+        <div class="where-row"><span class="term">R²<sub>j</sub></span><span>R² from regressing feature Xj on all other features.</span></div>
+      </div>
+
+      <div class="page-divider"></div>
+
+      <div class="intuition-label">Intuition:—</div>
+      <ul class="note-list" style="margin-top:6px;">
+        <li>If VIF &gt; 5 (sometimes &gt; 10) → indicates <strong>High Multi-collinearity</strong>.</li>
+        <li>If xj is independent → R²<sub>j</sub> ≈ 0 → VIF ≈ 1.</li>
+        <li>So VIF directly <strong>quantifies redundancy</strong> in features space.</li>
+      </ul>
+
+      <div class="page-divider"></div>
+
+      <p style="color:var(--accent); font-weight:700; font-size:0.88rem; margin-bottom:6px;">eg:—</p>
+      <div class="code-block">
+        from statsmodels.stats.outliers_influence import variance_inflation_factor<br>
+        X = df.drop(columns=['salary'])<br>
+        y = df['price']<br>
+        X = sm.add_constant(X)<br>
+        vif = pd.DataFrame()<br>
+        vif['VIF'] = [variance_inflation_factor(X.values, i)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; for i in range(X.shape[1])]<br>
+        vif['variable'] = X.columns<br>
+        print(vif)
+      </div>
+
+      <div class="page-divider"></div>
+      <div class="important-box">
+        <span class="imp-label">Important:</span> Interpretation: Both Years Experience &amp; Age have ≈ 39.5 which is much higher — meaning they are <strong>highly correlated</strong> to each other.
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 7: Correlation Matrix -->
+  <div class="page" id="corrmatrix">
+    <div class="page-inner">
+      <div class="section-title"><span class="hash">2.</span>Correlation Matrix / Heat Map</div>
+
+      <ul class="note-list">
+        <li>Correlation matrix only captures <strong>pairwise relationships</strong>.</li>
+        <li>And it solves <em>hidden</em> multi-collinearity problems: low pairwise correlations but still strong collinearity.</li>
+      </ul>
+
+      <div class="subsection">Pairwise Correlation:—</div>
+      <div class="formula-box">
+        ρᵢⱼ = <span class="frac"><span class="num">Cov(xᵢ · xⱼ)</span><span>σᵢ σⱼ</span></span>
+      </div>
+
+      <div class="subsection">When to use:—</div>
+      <ol class="note-list-num">
+        <li><span class="num-label">1.</span>Quick Screening</li>
+        <li><span class="num-label">2.</span>Feature pruning before modeling</li>
+      </ol>
+
+      <div class="note-callout blue" style="margin-top:10px;">
+        <span class="note-label">Note:—</span>Not sufficient alone for serious modeling.
+      </div>
+
+      <div class="page-divider"></div>
+
+      <p style="color:var(--accent); font-weight:700; font-size:0.88rem; margin-bottom:6px;">eg:—</p>
+      <div class="code-block">
+        df_corr = df.corr()<br>
+        threshold = 0.2<br>
+        high_corr = []<br><br>
+        for col1 in df_corr.columns:<br>
+        &nbsp;&nbsp;for col2 in df_corr.columns:<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;if col1 != col2 and abs(df_corr.loc[col1, col2]) &gt; threshold:<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;high_corr.append((col1, col2, df_corr.loc[col1, col2]))
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 8: Condition Number + Eigenvalues -->
+  <div class="page">
+    <div class="page-inner">
+      <div class="section-title"><span class="hash">3.</span>Using Condition Number</div>
+
+      <p>Condition number of matrix X:</p>
+      <div class="formula-box">
+        κ(X) = <span class="frac"><span class="num">σ<sub>max</sub></span><span>σ<sub>min</sub></span></span>
+      </div>
+
+      <div class="where-block">
+        <div class="where-row"><span class="term">σ<sub>max</sub></span><span>Largest singular values</span></div>
+        <div class="where-row"><span class="term">σ<sub>min</sub></span><span>Smallest singular values</span></div>
+      </div>
+      <p style="color:#555; font-style:italic; font-size:0.88rem;">Also known as Numerical Stability View.</p>
+
+      <div class="intuition-label" style="margin-top:10px;">Intuition:—</div>
+      <ol class="note-list-num" style="margin-top:6px;">
+        <li><span class="num-label">1.</span>Measures sensitivity of solution to small changes.</li>
+        <li><span class="num-label">2.</span>If smallest singular values ≈ 0 → matrix nearly <strong>singular</strong>.</li>
+      </ol>
+
+      <div class="note-callout red" style="margin-top:10px;">
+        <span class="note-label">Note:—</span>Small noise in data → huge changes in coefficient.
+      </div>
+
+      <div class="page-divider"></div>
+
+      <div class="section-title"><span class="hash">4.</span>Using Eigenvalues / Eigen Decomposition</div>
+
+      <div class="code-block" style="color:var(--green-ink);">
+        import numpy as np<br>
+        X = df.drop(columns=['salary'])<br>
+        corr_matrix = X.corr()<br>
+        eigenvalues, eigenvectors = np.linalg.eig(corr_matrix)<br>
+        print("Eigen values", eigenvalues)
+      </div>
+
+      <div class="important-box" style="margin-top:10px;">
+        One eigenvalue is very close to 0 (0.01274) → indicates that features are <strong>nearly linearly dependent</strong>.
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 9: Handle Multi-collinearity -->
+  <div class="page">
+    <div class="page-inner">
+      <div class="section-title"><span class="hash">Q.</span>How do you Handle Multi-Collinearity?</div>
+
+      <ol class="note-list-num">
+        <li><span class="num-label">1.</span>Check correlation + VIF</li>
+        <li><span class="num-label">2.</span>If small problem → remove variables</li>
+        <li><span class="num-label">3.</span>If large / high-dimensional:<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;Use <strong>Ridge</strong>: use for coefficient stability.</li>
+        <li><span class="num-label">4.</span>If feature selection needed → Use <strong>Lasso</strong></li>
+        <li><span class="num-label">5.</span>When dealing with high-dimensional correlated data → Use <strong>PCA</strong></li>
+      </ol>
+
+      <div class="page-divider"></div>
+
+      <div class="section-title" id="solutions"><span class="hash">#</span>Multi-Collinearity Solutions</div>
+
+      <ol class="note-list-num">
+        <li><span class="num-label">1.</span>Remove Variables</li>
+        <li><span class="num-label">2.</span>Use PCA (Principal Component Analysis)</li>
+        <li><span class="num-label">3.</span>Use Regularization (Ridge / Lasso)</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- PAGE 10: PCA -->
+  <div class="page" id="pca">
+    <div class="page-inner">
+      <div class="section-title"><span class="hash">2.</span>PCA — Principal Component Analysis</div>
+
+      <ul class="note-list">
+        <li>It is an <strong>unsupervised learning</strong> but here we will see the point of multi-collinearity.</li>
+        <li>PCA is a technique to <strong>reduce the no. of features</strong> (dimensions) while keeping as much important information as possible.</li>
+      </ul>
+
+      <div class="page-divider"></div>
+
+      <p><strong>eg:—</strong> Think of a dataset like this:</p>
+      <ul class="note-list" style="margin-top:4px;">
+        <li>Height</li>
+        <li>Weight</li>
+        <li>Age</li>
+        <li>Income</li>
+        <li>Spending Scale</li>
+      </ul>
+      <p style="margin-top:6px; color:#555; font-size:0.88rem; font-style:italic;">Some of these are correlated (eg: height &amp; weight)</p>
+
+      <p style="margin-top:8px;"><strong>PCA finds:</strong></p>
+      <ul class="note-list">
+        <li class="red">The most important directions in the data</li>
+        <li class="red">Remove redundancy</li>
+        <li class="red">Keeps only what matters</li>
+      </ul>
+
+      <div class="page-divider"></div>
+
+      <div class="section-title"><span class="hash">#</span>How PCA Works</div>
+
+      <ol class="note-list-num">
+        <li style="margin-bottom:2px;"><span class="num-label">1.</span><strong>First Principal Component (PC1)</strong><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;Direction where data varies the most.</li>
+        <li style="margin-bottom:2px;"><span class="num-label">2.</span><strong>Second Principal Component (PC2)</strong><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;Orthogonal to PC1 · captures second-most variance.</li>
+      </ol>
+
+      <div class="page-divider"></div>
+
+      <div class="subsection">Maths behind PCA:—</div>
+      <ul class="note-list">
+        <li>PCA finds directions that <strong>maximize variance</strong>.</li>
+      </ul>
+      <p style="margin-top:6px;">Optimization goal:</p>
+      <div class="formula-box">max<sub>w</sub> Var (Xw)</div>
+      <p style="margin-top:4px; font-size:0.88rem;">Subject to: ‖w‖ = 1</p>
+      <p style="margin-top:4px; font-size:0.88rem; color:#555; font-style:italic;">This leads to <strong>Eigenvectors of Covariance Matrix</strong>.</p>
+    </div>
+  </div>
+
+  <!-- PAGE 11: Step-by-Step PCA -->
+  <div class="page">
+    <div class="page-inner">
+      <div class="section-title"><span class="hash">#</span>Step-by-Step: How PCA Works</div>
+
+      <div class="step-row" style="margin-bottom:6px;"><span class="step-num">1.</span><span><strong>Standardize the data:</strong> Mean = 0, Variance = 1<br><em style="font-size:0.85rem; color:#666;">Why? So features don't dominate due to scale.</em></span></div>
+
+      <div class="step-row" style="margin-bottom:6px;"><span class="step-num">2.</span><span><strong>Compute Covariance Matrix:</strong></span></div>
+      <div style="margin-left:32px;">
+        <div class="formula-box">C = <span class="frac"><span class="num">1</span><span>n</span></span> X<sup>T</sup>X</div>
+        <p style="font-size:0.85rem; color:#555; font-style:italic;">where X<sup>T</sup> = transpose of matrix · This tells how features vary together.</p>
+      </div>
+
+      <div class="step-row" style="margin-bottom:6px; margin-top:8px;"><span class="step-num">3.</span><span><strong>Compute Eigenvalues &amp; Eigenvectors:</strong><br>
+        Eigenvectors → directions (principal components)<br>
+        Eigenvalues → importance (variance)</span></div>
+
+      <div class="step-row" style="margin-bottom:6px;"><span class="step-num">4.</span><span><strong>Sort by Eigenvalues:</strong><br>
+        Highest eigenvalues → most important component.</span></div>
+
+      <div class="step-row" style="margin-bottom:6px;"><span class="step-num">5.</span><span><strong>Select top k components:</strong><br>
+        Reduce dimensions (eg: 100 → 10)</span></div>
+
+      <div class="step-row" style="margin-bottom:6px;"><span class="step-num">6.</span><span><strong>Transform data:</strong><br>
+        Project original data onto new axes.<br>
+        <span class="formula-box" style="margin-top:4px; display:inline-block;">Z = X · V₁</span></span></div>
+
+      <div class="page-divider"></div>
+
+      <div class="subsection">Simple Python Example:—</div>
+      <div class="code-block">
+        from sklearn.decomposition import PCA<br>
+        from sklearn.preprocessing import StandardScaler<br><br>
+        X_scaled = StandardScaler().fit_transform(X)<br>
+        pca = PCA(n_components=2)<br>
+        X_pca = pca.fit_transform(X_scaled)<br>
+        print(pca.explained_variance_ratio_)
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 12: PCA Numerical Example -->
+  <div class="page">
+    <div class="page-inner">
+      <div class="section-title"><span class="hash">#</span>PCA Worked Example</div>
+
+      <div class="subsection">Step 0: Our Dataset</div>
+      <table class="notebook-table" style="width:40%; margin-bottom:10px;">
+        <thead><tr><th>Point</th><th>X</th><th>Y</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>2</td><td>2</td></tr>
+          <tr><td>2</td><td>3</td><td>3</td></tr>
+          <tr><td>3</td><td>4</td><td>4</td></tr>
+          <tr><td>4</td><td>5</td><td>5</td></tr>
+        </tbody>
+      </table>
+      <p style="font-style:italic; color:#555; font-size:0.88rem;">Notice: Y = X — they are highly correlated → perfect for PCA.</p>
+
+      <div class="page-divider"></div>
+
+      <div class="subsection">Step 1: Standardize (Mean = 0)</div>
+      <p>μX = μY = (2+3+4+5)/4 = 3.5</p>
+      <table class="notebook-table" style="width:30%; margin: 8px 0;">
+        <thead><tr><th>X</th><th>Y</th></tr></thead>
+        <tbody>
+          <tr><td>-1.5</td><td>-1.5</td></tr>
+          <tr><td>-0.5</td><td>-0.5</td></tr>
+          <tr><td>0.5</td><td>0.5</td></tr>
+          <tr><td>1.5</td><td>1.5</td></tr>
+        </tbody>
+      </table>
+
+      <div class="page-divider"></div>
+
+      <div class="subsection">Step 2: Covariance Matrix</div>
+      <p>Var(X) = Var(Y) = <strong>1.25</strong> &nbsp;|&nbsp; Cov(X,Y) = Cov(Y,X) = <strong>1.25</strong></p>
+      <div class="formula-box" style="margin-top:6px;">
+        C = [ [1.25, 1.25], [1.25, 1.25] ]
+      </div>
+
+      <div class="page-divider"></div>
+
+      <div class="subsection">Step 3: Eigenvalues &amp; Eigenvectors</div>
+      <p>Solve |C − λI| = 0 → <strong>λ₁ = 2.5, λ₂ = 0</strong></p>
+
+      <table class="notebook-table" style="width:60%; margin-top:8px;">
+        <thead><tr><th>Component</th><th>Eigenvalue</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td>PC1</td><td>2.5</td><td>Most variance</td></tr>
+          <tr><td>PC2</td><td>0</td><td>No information</td></tr>
+        </tbody>
+      </table>
+
+      <div class="page-divider"></div>
+      <p><strong>Step 5:</strong> Select k = 1 (only PC1) — because PC2 adds nothing.</p>
+      <p style="margin-top:6px;"><strong>Step 6: Transform Data:</strong> Project data into PC1 using normalized eigenvector v₁ = [1/√2, 1/√2]</p>
+      <div class="formula-box">Z = X · V₁</div>
+    </div>
+  </div>
+
+</div>
+
+<div style="text-align:center; margin-top:40px; color:#aaa; font-family:'JetBrains Mono',monospace; font-size:0.75rem; letter-spacing:1px;">
+  ML NOTES · MULTI-LINEAR REGRESSION &amp; PCA
+</div>
+
+</body>
+</html>
