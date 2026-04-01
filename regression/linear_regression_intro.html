@@ -1,0 +1,1202 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Linear Regression – Complete Guide</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400;500&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #1a1209;
+        --paper: #faf6ee;
+        --paper-dark: #f0e9d8;
+        --rule: #d4c9aa;
+        --accent-red: #c0392b;
+        --accent-green: #2d6a4f;
+        --accent-blue: #1a3a5c;
+        --accent-amber: #b5860d;
+        --shadow: rgba(80, 60, 20, 0.13);
+        --bg: #e8dfc8;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: var(--bg);
+        font-family: "Crimson Pro", Georgia, serif;
+        color: var(--ink);
+        min-height: 100vh;
+        padding: 40px 20px 60px;
+        background-image:
+          radial-gradient(ellipse at 15% 10%, #d4c9a870, transparent 50%),
+          radial-gradient(ellipse at 85% 90%, #c8b89060, transparent 50%);
+      }
+
+      /* ─── HEADER ─── */
+      .page-header {
+        text-align: center;
+        margin-bottom: 28px;
+        animation: fadeDown 0.6s ease both;
+      }
+      .page-header h1 {
+        font-family: "Playfair Display", serif;
+        font-size: clamp(1.9rem, 4vw, 3rem);
+        font-weight: 700;
+        color: var(--accent-blue);
+        letter-spacing: 0.02em;
+        border-bottom: 2.5px double var(--accent-amber);
+        display: inline-block;
+        padding-bottom: 8px;
+      }
+      .page-header .subtitle {
+        font-family: "DM Mono", monospace;
+        font-size: 0.72rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--accent-amber);
+        margin-top: 6px;
+      }
+
+      /* ─── TAB NAV ─── */
+      .tab-bar {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-bottom: 24px;
+        animation: fadeDown 0.5s ease both;
+      }
+      .tab {
+        padding: 5px 14px;
+        font-family: "DM Mono", monospace;
+        font-size: 0.68rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        border: 1.5px solid var(--rule);
+        border-radius: 100px;
+        background: var(--paper);
+        color: #6b5a3a;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s ease;
+      }
+      .tab:hover {
+        background: var(--accent-blue);
+        color: #fff;
+        border-color: var(--accent-blue);
+        transform: translateY(-1px);
+      }
+
+      /* ─── NOTEBOOK ─── */
+      .notebook {
+        max-width: 900px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 26px;
+      }
+
+      /* ─── PAGE CARD ─── */
+      .page {
+        background: var(--paper);
+        border-radius: 2px;
+        box-shadow:
+          0 1px 3px var(--shadow),
+          0 8px 28px var(--shadow),
+          inset 0 0 0 1px rgba(200, 180, 130, 0.3);
+        position: relative;
+        overflow: hidden;
+        animation: slideUp 0.5s ease both;
+      }
+      .page:nth-child(2) {
+        animation-delay: 0.08s;
+      }
+      .page:nth-child(3) {
+        animation-delay: 0.16s;
+      }
+      .page:nth-child(4) {
+        animation-delay: 0.24s;
+      }
+      .page:nth-child(5) {
+        animation-delay: 0.32s;
+      }
+      .page:nth-child(6) {
+        animation-delay: 0.4s;
+      }
+      .page:nth-child(7) {
+        animation-delay: 0.48s;
+      }
+      .page:nth-child(8) {
+        animation-delay: 0.56s;
+      }
+      .page:nth-child(9) {
+        animation-delay: 0.64s;
+      }
+
+      /* ruled lines */
+      .page::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: repeating-linear-gradient(
+          to bottom,
+          transparent,
+          transparent 31px,
+          var(--rule) 31px,
+          var(--rule) 32px
+        );
+        background-position: 0 50px;
+        pointer-events: none;
+        z-index: 0;
+      }
+      /* red margin */
+      .page::after {
+        content: "";
+        position: absolute;
+        left: 68px;
+        top: 0;
+        bottom: 0;
+        width: 1.5px;
+        background: rgba(192, 57, 43, 0.32);
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      .spiral {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 26px;
+        background: repeating-linear-gradient(
+          to bottom,
+          transparent 0,
+          transparent 22px,
+          #c8b890 22px,
+          #c8b890 24px,
+          transparent 24px,
+          transparent 32px
+        );
+        border-right: 2px solid #c0a870;
+      }
+
+      .page-content {
+        position: relative;
+        z-index: 2;
+        padding: 20px 28px 30px 88px;
+      }
+
+      /* ─── TYPOGRAPHY ─── */
+      .section-tag {
+        font-family: "DM Mono", monospace;
+        font-size: 0.67rem;
+        font-weight: 500;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--accent-red);
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .section-tag::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--rule);
+      }
+
+      .section-title {
+        font-family: "Playfair Display", serif;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--accent-blue);
+        margin-bottom: 16px;
+        line-height: 1.25;
+      }
+      .section-title.underlined {
+        text-decoration: underline;
+        text-underline-offset: 4px;
+      }
+
+      .prose {
+        font-size: 1.04rem;
+        line-height: 2rem;
+        font-weight: 300;
+        color: #2a1f0e;
+      }
+      .prose + .prose {
+        margin-top: 6px;
+      }
+
+      .note-item {
+        display: flex;
+        gap: 10px;
+        line-height: 2rem;
+        font-size: 1.04rem;
+        font-weight: 300;
+        color: #2a1f0e;
+        margin-bottom: 2px;
+      }
+      .bullet {
+        color: var(--accent-red);
+        font-weight: 600;
+        flex-shrink: 0;
+        font-size: 1.1rem;
+        line-height: 2rem;
+      }
+      .alpha-label {
+        font-family: "DM Mono", monospace;
+        font-size: 0.82rem;
+        color: var(--accent-green);
+        font-weight: 500;
+        min-width: 1.5rem;
+      }
+
+      /* ─── FORMULA BOX ─── */
+      .formula-box {
+        display: block;
+        margin: 14px 0;
+        padding: 10px 20px;
+        border: 2px solid var(--accent-red);
+        border-radius: 3px;
+        font-family: "DM Mono", monospace;
+        font-size: 0.9rem;
+        background: rgba(192, 57, 43, 0.04);
+        text-align: center;
+        color: var(--ink);
+        letter-spacing: 0.03em;
+        line-height: 1.8;
+      }
+      .formula-box .label {
+        font-size: 0.68rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--accent-red);
+        display: block;
+        margin-bottom: 4px;
+        font-weight: 500;
+      }
+      .formula-box var {
+        font-style: italic;
+        color: var(--accent-blue);
+      }
+      .formula-box span.hi {
+        color: var(--accent-red);
+        font-weight: 500;
+      }
+
+      /* ─── INLINE FORMULA (lighter) ─── */
+      .formula-inline {
+        display: inline-block;
+        font-family: "DM Mono", monospace;
+        font-size: 0.88rem;
+        background: rgba(181, 134, 13, 0.1);
+        border: 1px solid var(--accent-amber);
+        padding: 2px 10px;
+        border-radius: 3px;
+        color: var(--ink);
+      }
+
+      /* ─── TABLE ─── */
+      .nb-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 14px 0;
+        font-size: 0.93rem;
+      }
+      .nb-table th {
+        background: var(--paper-dark);
+        font-family: "DM Mono", monospace;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 7px 12px;
+        border: 1px solid var(--rule);
+        color: var(--accent-blue);
+        font-weight: 500;
+        text-align: left;
+      }
+      .nb-table td {
+        padding: 8px 12px;
+        border: 1px solid var(--rule);
+        vertical-align: top;
+        line-height: 1.55;
+      }
+      .nb-table tr:nth-child(even) td {
+        background: rgba(212, 201, 170, 0.18);
+      }
+      .nb-table td strong {
+        color: var(--accent-blue);
+        font-family: "Playfair Display", serif;
+      }
+
+      /* ─── HIGHLIGHT / STICKY ─── */
+      .highlight {
+        background: rgba(181, 134, 13, 0.09);
+        border-left: 3px solid var(--accent-amber);
+        padding: 10px 14px;
+        border-radius: 0 4px 4px 0;
+        margin: 10px 0;
+        font-size: 0.97rem;
+        line-height: 1.7;
+        color: #3a2800;
+      }
+      .sticky {
+        background: #fffde7;
+        border-top: 4px solid var(--accent-amber);
+        padding: 9px 14px;
+        font-size: 0.94rem;
+        font-style: italic;
+        color: #3a2800;
+        box-shadow: 2px 3px 8px rgba(181, 134, 13, 0.22);
+        margin: 10px 0;
+        border-radius: 0 0 3px 3px;
+        transform: rotate(-0.3deg);
+      }
+
+      /* ─── CODE ─── */
+      .code-block {
+        background: #1e1612;
+        color: #e8d8b8;
+        font-family: "DM Mono", monospace;
+        font-size: 0.8rem;
+        line-height: 1.8;
+        padding: 16px 20px;
+        border-radius: 4px;
+        margin: 12px 0;
+        overflow-x: auto;
+        border-left: 3px solid var(--accent-amber);
+      }
+      .c-comment {
+        color: #7a9e7e;
+        font-style: italic;
+      }
+      .c-keyword {
+        color: #e07b54;
+      }
+      .c-func {
+        color: #7ec8e3;
+      }
+      .c-string {
+        color: #b5d99c;
+      }
+      .c-num {
+        color: #f0c060;
+      }
+
+      /* ─── HELPERS ─── */
+      .divider {
+        height: 1px;
+        background: var(--rule);
+        margin: 16px 0;
+      }
+      .keyword {
+        color: var(--accent-green);
+        font-weight: 600;
+      }
+      .kw-red {
+        color: var(--accent-red);
+        font-weight: 600;
+      }
+      .kw-blue {
+        color: var(--accent-blue);
+        font-weight: 600;
+      }
+      .sub-list {
+        padding-left: 22px;
+      }
+
+      .numbered-list {
+        counter-reset: item;
+        list-style: none;
+      }
+      .numbered-list li {
+        counter-increment: item;
+        display: flex;
+        gap: 10px;
+        line-height: 2rem;
+        font-size: 1.02rem;
+        font-weight: 300;
+        margin-bottom: 2px;
+      }
+      .numbered-list li::before {
+        content: counter(item) ".";
+        font-family: "DM Mono", monospace;
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: var(--accent-amber);
+        min-width: 1.5rem;
+        padding-top: 3px;
+      }
+
+      .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        margin-top: 10px;
+      }
+      @media (max-width: 560px) {
+        .two-col {
+          grid-template-columns: 1fr;
+        }
+        .page-content {
+          padding-left: 72px;
+          padding-right: 16px;
+        }
+        .page::after {
+          left: 52px;
+        }
+      }
+
+      .mini-card {
+        background: var(--paper-dark);
+        border-radius: 3px;
+        padding: 10px 14px;
+        border: 1px solid var(--rule);
+      }
+      .mini-card .card-title {
+        font-family: "Playfair Display", serif;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--accent-blue);
+        margin-bottom: 5px;
+      }
+      .mini-card .card-body {
+        font-size: 0.92rem;
+        line-height: 1.65;
+        font-weight: 300;
+      }
+
+      /* graph sketch (CSS only) */
+      .graph-wrap {
+        display: flex;
+        gap: 24px;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        margin: 14px 0;
+      }
+      .graph-label {
+        font-family: "DM Mono", monospace;
+        font-size: 0.7rem;
+        color: #6b5a3a;
+        letter-spacing: 0.06em;
+      }
+
+      /* ─── ANIMATIONS ─── */
+      @keyframes fadeDown {
+        from {
+          opacity: 0;
+          transform: translateY(-14px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(22px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-header">
+      <h1>Linear Regression</h1>
+      <p class="subtitle">Complete Study Notes</p>
+    </div>
+
+    <div class="notebook">
+      <!-- PAGE 1 · INTRO -->
+      <div class="page" id="intro">
+        <div class="spiral"></div>
+        <div class="page-content">
+          <div class="section-tag">What we're learning</div>
+          <h2 class="section-title underlined">→ Linear Regression :-</h2>
+
+          <div class="highlight" style="margin-bottom: 12px">
+            <strong>Here what we gonna learn:</strong><br />
+            1. What problem we are solving &nbsp;|&nbsp; 2. Geometrical
+            Intuition &nbsp;|&nbsp; 3. Mathematical Intuition
+          </div>
+
+          <div class="note-item">
+            <span class="bullet">–</span
+            ><span class="prose"
+              ><span class="keyword">Linear Regression</span> is a supervised
+              learning algorithm used to predict a
+              <span class="kw-blue">continuous value</span>.</span
+            >
+          </div>
+          <div class="note-item">
+            <span class="bullet">–</span
+            ><span class="prose"
+              >It is a statistical method used to model the relationship between
+              a <span class="kw-red">dependent variable (Y)</span> and one or
+              more <span class="keyword">independent (X) variables</span>,
+              assuming the relationship is linear.</span
+            >
+          </div>
+          <div class="note-item">
+            <span class="bullet">–</span
+            ><span class="prose"
+              >Basic idea: fit a straight line (or
+              <span class="keyword">hyperplane</span>) that minimizes the
+              difference between actual and predicted values.</span
+            >
+          </div>
+
+          <div class="formula-box" style="margin-top: 16px">
+            <span class="label">Simple Linear Regression</span>
+            <var>y</var> = <var>mx</var> + <var>b</var>
+          </div>
+
+          <div class="sub-list" style="margin-top: 8px">
+            <div class="note-item">
+              <span class="alpha-label">y</span><span>: predicted value</span>
+            </div>
+            <div class="note-item">
+              <span class="alpha-label">x</span><span>: input feature</span>
+            </div>
+            <div class="note-item">
+              <span class="alpha-label">m</span
+              ><span>: slope / coefficient (weight) ★★</span>
+            </div>
+            <div class="note-item">
+              <span class="alpha-label">b</span
+              ><span>: intercept (bias) ★★</span>
+            </div>
+          </div>
+
+          <div class="sticky">
+            Also: <em>slope</em> is also known as <strong>coefficient</strong>.
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="formula-box">
+            <span class="label">Multiple Linear Regression</span>
+            <var>y</var> = β₀ + β₁x₁ + β₂x₂ + … + βₚxₚ
+          </div>
+          <div class="sub-list" style="margin-top: 6px">
+            <div class="note-item">
+              <span class="alpha-label">β₀</span><span>: intercept</span>
+            </div>
+            <div class="note-item">
+              <span class="alpha-label">βⱼ</span
+              ><span>: slope / coefficient for feature j</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE 2 · RESIDUAL ERROR -->
+      <div class="page" id="residual">
+        <div class="spiral"></div>
+        <div class="page-content">
+          <div class="section-tag">Geometrical Intuition</div>
+          <h2 class="section-title underlined">Residual Error :-</h2>
+
+          <div class="note-item">
+            <span class="bullet">•</span
+            ><span class="prose"
+              >The <span class="keyword">Residual Error (ε)</span> is the
+              difference between the actual observed value <var>(y)</var> and
+              the predicted value <var>(ŷ)</var> from the model.</span
+            >
+          </div>
+
+          <div class="highlight">
+            <strong>Note:</strong> If Sum of Residual Error is
+            <span class="keyword">minimum</span>, that is called the
+            <strong>best fit line</strong> of Linear Regression model.<br /><br />
+            If Sum of Residual Error is <span class="kw-red">zero</span> → it
+            causes <span class="kw-red">Overfitting</span> problem.
+          </div>
+
+          <div class="formula-box">
+            <span class="label">Formula</span>
+            <var>ŷ</var> = <var>mx</var> + <var>c</var> &nbsp;&nbsp;&nbsp;
+            Residual Error → <span class="hi">½ Σ (Δᵢ)²</span>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="note-item">
+            <span class="bullet">★</span
+            ><span class="prose"
+              ><span class="keyword">Slope (m):</span> If 1 unit increase in
+              x-axis leads to how many units increase in y-axis.</span
+            >
+          </div>
+          <div class="note-item">
+            <span class="bullet">★</span
+            ><span class="prose"
+              ><span class="keyword">Intercept (b/c):</span> When x value is
+              zero — where the best fit line is intercepting the y-axis.</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE 3 · HYPOTHESIS -->
+      <div class="page" id="hypothesis">
+        <div class="spiral"></div>
+        <div class="page-content">
+          <div class="section-tag">Mathematical Intuition</div>
+          <h2 class="section-title underlined">Hypothesis :-</h2>
+
+          <div class="prose" style="margin-bottom: 10px">
+            In terms of hypothesis — y is a
+            <span class="keyword">linear function</span> of x :
+          </div>
+
+          <div class="formula-box">
+            <span class="label">Hypothesis Function</span>
+            h<sub>θ</sub>(x<sup>(i)</sup>) = θ₀ + θ₁x<sup>(i)</sup>
+          </div>
+
+          <div class="note-item" style="margin-top: 8px">
+            <span class="bullet">–</span><span>x : data features</span>
+          </div>
+
+          <div class="formula-box" style="margin-top: 10px">
+            <span class="label">General Form</span>
+            h<sub>θ</sub>(x) = θ₀ + θ₁x₁ + θ₂x₂ + … + θₙxₙ
+          </div>
+
+          <div class="formula-box" style="margin-top: 10px">
+            <span class="label">With Error Term</span>
+            <var>ŷ</var> = β₀ + β₁x₁ + <span class="hi">ε</span> &nbsp;&nbsp;
+            where ε = error
+          </div>
+          <div class="note-item" style="margin-top: 6px">
+            <span class="bullet">–</span
+            ><span>ε = E<sub>actual</sub> − E<sub>predict</sub></span>
+          </div>
+          <div class="note-item">
+            <span class="bullet">–</span
+            ><span
+              >ε can be <span class="keyword">+ve</span> or
+              <span class="kw-red">−ve</span></span
+            >
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="prose" style="margin-bottom: 8px">
+            <strong>Suppose</strong> θ₀ = 0 &amp; θ₁ = 0.5 :
+          </div>
+          <div class="sub-list">
+            <div class="note-item">
+              <span class="alpha-label">1.</span
+              ><span>0 + 0.5 × 1 = <strong>0.5</strong></span>
+            </div>
+            <div class="note-item">
+              <span class="alpha-label">2.</span
+              ><span>0 + 0.5 × 2 = <strong>1.0</strong></span>
+            </div>
+            <div class="note-item">
+              <span class="alpha-label">3.</span
+              ><span>0 + 0.5 × 3 = <strong>1.5</strong></span>
+            </div>
+            <div class="note-item">
+              <span class="alpha-label">4.</span
+              ><span>0 + 0.5 × 4 = <strong>2.0</strong></span>
+            </div>
+          </div>
+          <div class="sticky">
+            Note: Because θ₀ is the intercepter, that's why hyperplane goes from
+            <strong>origin</strong>.
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE 4 · OLS -->
+      <div class="page" id="ols">
+        <div class="spiral"></div>
+        <div class="page-content">
+          <div class="section-tag">Key Components</div>
+          <h2 class="section-title"># OLS Role :-</h2>
+
+          <div class="prose" style="margin-bottom: 12px">
+            Note: In Linear Regression model our aim is to find
+            <span class="keyword">best fit line</span> with
+            <span class="kw-red">minimal error</span>. Linear Regression has 3
+            key components:
+          </div>
+
+          <table class="nb-table">
+            <thead>
+              <tr>
+                <th>Component</th>
+                <th>Concept</th>
+                <th>Role</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Cost Function</strong></td>
+                <td>The measure of error</td>
+                <td>Measures how bad our model is</td>
+              </tr>
+              <tr>
+                <td><strong>OLS (Ordinary Least Squares)</strong></td>
+                <td>The model method</td>
+                <td>Defines what "best" means mathematically</td>
+              </tr>
+              <tr>
+                <td><strong>Gradient Descent</strong></td>
+                <td>The optimization tool</td>
+                <td>Finds the best parameters efficiently</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="divider"></div>
+
+          <h3
+            style="
+              font-family: &quot;Playfair Display&quot;, serif;
+              font-size: 1.1rem;
+              font-weight: 700;
+              color: var(--accent-blue);
+              margin-bottom: 10px;
+            "
+          >
+            1. OLS (Ordinary Least Squares) :-
+          </h3>
+
+          <div class="note-item">
+            <span class="bullet">–</span
+            ><span
+              >It says:
+              <em
+                >"Choose parameters such that the
+                <span class="keyword">sum of squared errors</span> is
+                minimized."</em
+              ></span
+            >
+          </div>
+          <div class="note-item">
+            <span class="bullet">–</span
+            ><span
+              >OLS defines the <span class="keyword">objective</span>.</span
+            >
+          </div>
+          <div class="note-item">
+            <span class="bullet">–</span
+            ><span
+              >It directly finds the parameter values (coefficient β, θ) to
+              minimize the cost function — specifically the
+              <span class="keyword">Sum of Squared Error (SSE)</span>.</span
+            >
+          </div>
+
+          <div class="formula-box" style="margin-top: 12px">
+            <span class="label">SSE Formula</span>
+            SSE = Σ<sub>i=1</sub><sup>m</sup> ( y<sup>(i)</sup> −
+            h<sub>θ</sub>(x<sup>(i)</sup>) )²
+          </div>
+
+          <div class="formula-box" style="margin-top: 10px">
+            <span class="label">Closed-Form Solution (Normal Equation)</span>
+            <span class="hi">θ̂ = (XᵀX)⁻¹ Xᵀy</span>
+          </div>
+
+          <div class="sub-list" style="margin-top: 8px">
+            <div class="note-item">
+              <span class="alpha-label">X</span
+              ><span>: The matrix of all input features</span>
+            </div>
+            <div class="note-item">
+              <span class="alpha-label">Xᵀ</span
+              ><span>: The transpose of matrix X</span>
+            </div>
+            <div class="note-item">
+              <span class="alpha-label">⁻¹</span
+              ><span>: The inverse of the matrix</span>
+            </div>
+          </div>
+
+          <div class="highlight" style="margin-top: 10px">
+            <strong>Note:</strong> OLS is nothing but
+            <span class="keyword">MSE without division by N</span>.<br />
+            OLS can resolve analytically (without iteration) and gives a
+            <strong>closed-form solution</strong>.
+          </div>
+
+          <div class="code-block">
+            <span class="c-comment"
+              ># NumPy implementation of Normal Equation</span
+            >
+            theta = np.<span class="c-func">linalg</span>.<span class="c-func"
+              >inv</span
+            >(X.T @ X) @ X.T @ y
+            <span class="c-comment"
+              ># where: X.T = matrix of transpose feature, y = target
+              vector</span
+            >
+            <span class="c-comment"># linalg = linear algebra</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE 5 · COST FUNCTION -->
+      <div class="page" id="cost">
+        <div class="spiral"></div>
+        <div class="page-content">
+          <div class="section-tag">Section ii</div>
+          <h2 class="section-title underlined">Cost Function :-</h2>
+
+          <div class="note-item">
+            <span class="bullet">–</span
+            ><span class="prose"
+              >How wrong is my model. A math used to calculate how
+              <span class="kw-red">"wrong"</span> the model is at a given
+              moment.</span
+            >
+          </div>
+          <div class="note-item">
+            <span class="bullet">–</span
+            ><span class="prose"
+              >We typically use
+              <span class="keyword">Mean Squared Error (MSE)</span>:</span
+            >
+          </div>
+
+          <div class="formula-box">
+            <span class="label">MSE / Cost Function J(θ)</span>
+            J(θ) = <span class="hi">1/(2m)</span> · Σ<sub>i=1</sub
+            ><sup>m</sup> ( h<sub>θ</sub>(x<sup>(i)</sup>) − y<sup>(i)</sup> )²
+            &nbsp; ↓ minimize
+          </div>
+
+          <div class="sub-list" style="margin-top: 8px">
+            <div class="note-item">
+              <span class="alpha-label">h<sub>θ</sub>(x)</span
+              ><span>: The predicted value (the line)</span>
+            </div>
+            <div class="note-item">
+              <span class="alpha-label">y</span><span>: The actual value</span>
+            </div>
+            <div class="note-item">
+              <span class="alpha-label">m</span
+              ><span>: The number of data points</span>
+            </div>
+          </div>
+
+          <div class="highlight" style="margin-top: 10px">
+            <strong>Why 1/2m ?</strong><br />
+            Because of the chain rule: ∂x²/∂x = 2x → the 2 cancels the ½, giving
+            us a cleaner derivative.<br />
+            To get the slope → use <span class="keyword">differentiation</span>.
+          </div>
+
+          <div class="note-item" style="margin-top: 10px">
+            <span class="bullet">–</span
+            ><span
+              >(y<sub>actual</sub> − y<sub>predicted</sub>) value can be +ve or
+              −ve based on coefficient. To prevent −ve we use
+              <span class="keyword">square</span>.</span
+            >
+          </div>
+          <div class="note-item">
+            <span class="bullet">–</span
+            ><span
+              >Cost function also known as
+              <span class="keyword">Squared Error Function (SEF)</span>.</span
+            >
+          </div>
+          <div class="note-item">
+            <span class="bullet">–</span
+            ><span
+              >We need to change coefficient value to change or
+              <span class="kw-blue">minimize the cost function</span>.</span
+            >
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="prose" style="margin-bottom: 8px">
+            <strong>Example Calculation</strong> — for θ₀=0, θ₁=0.5 with data
+            (1,1)(2,2)(3,3):
+          </div>
+          <div class="two-col">
+            <div class="mini-card">
+              <div class="card-title">h<sub>θ</sub> predictions</div>
+              <div class="card-body">
+                h(x₁) = 0+1×0.5 = 0.5<br />
+                h(x₂) = 0+2×0.5 = 1.0<br />
+                h(x₃) = 0+3×0.5 = 1.5
+              </div>
+            </div>
+            <div class="mini-card">
+              <div class="card-title">J(θ₁) at θ₁=0.5</div>
+              <div class="card-body">
+                = 1/6 [(0.5−1)²+(1−2)²+(1.5−3)²]<br />
+                = 1/6 [3.5] = <strong>0.58</strong>
+              </div>
+            </div>
+            <div class="mini-card" style="grid-column: span 2">
+              <div class="card-title">J(θ₁) at θ₁=1 → Perfect Fit</div>
+              <div class="card-body">
+                = 1/6 [(1−1)²+(2−2)²+(3−3)²] = <strong>0.0</strong> ← global
+                minima
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE 6 · GRADIENT DESCENT -->
+      <div class="page" id="gradient">
+        <div class="spiral"></div>
+        <div class="page-content">
+          <div class="section-tag">Section iii</div>
+          <h2 class="section-title underlined">Gradient Descent :-</h2>
+
+          <div class="note-item">
+            <span class="bullet">–</span
+            ><span class="prose"
+              ><span class="keyword">Gradient Descent</span> is an optimization
+              algorithm that iteratively adjusts model parameters in the
+              direction of <span class="kw-red">negative gradient</span> of the
+              cost function to minimize error.</span
+            >
+          </div>
+          <div class="note-item">
+            <span class="bullet">–</span
+            ><span class="prose"
+              >It tweaks the weight (coefficient) of the model
+              <strong>step-by-step</strong> to "walk down" the hill of the cost
+              function until it reaches the
+              <span class="keyword">global minima</span> (minimum error).</span
+            >
+          </div>
+          <div class="note-item">
+            <span class="bullet">–</span
+            ><span class="prose"
+              >It takes a shortcut — jumps directly to the bottom instead of
+              walking step-by-step.</span
+            >
+          </div>
+
+          <div class="highlight">
+            <strong>Analogy:</strong><br />
+            • Cost Function = <span class="kw-blue">hill</span><br />
+            • Gradient Descent = walking downhill to reach minimum<br />
+            • Minimum point = best values of m and c<br />
+            • Best m &amp; c = best fit line
+          </div>
+
+          <div class="formula-box" style="margin-top: 14px">
+            <span class="label"
+              >Repeat Convergence Theorem (RCT) — Update Rule</span
+            >
+            θⱼ := θⱼ − α · ∂/∂θⱼ J(θ) &nbsp;&nbsp; ← slope or coefficient
+          </div>
+
+          <div class="sub-list" style="margin-top: 8px">
+            <div class="note-item">
+              <span class="alpha-label">α</span
+              ><span
+                >: <span class="keyword">Learning Rate</span> — a small positive
+                no. (e.g. 0.01) that determines the size of step taken down the
+                gradient.</span
+              >
+            </div>
+            <div class="note-item">
+              <span class="alpha-label">∂/∂θⱼ</span
+              ><span
+                >: The partial derivative — calculates slope of cost
+                function.</span
+              >
+            </div>
+          </div>
+
+          <div class="sticky">
+            And in Gradient Descent, <strong>global minima</strong> tells that
+            model training has to happen near the global minima value.
+          </div>
+
+          <div class="highlight" style="margin-top: 10px">
+            <strong>Convergence Theorem:</strong> If the cost function is convex
+            and the learning rate α is small enough, then gradient descent is
+            <span class="keyword">guaranteed to converge</span> to the global
+            minimum.
+          </div>
+        </div>
+      </div>
+
+      <!-- PAGE 7 · PARTIAL DERIVATIVES -->
+      <div class="page" id="partial">
+        <div class="spiral"></div>
+        <div class="page-content">
+          <div class="section-tag">Math Deep Dive</div>
+          <h2 class="section-title"># Partial Derivatives :-</h2>
+
+          <div class="two-col">
+            <div class="mini-card">
+              <div class="card-title">Simple Derivative</div>
+              <div
+                class="card-body"
+                style="
+                  font-family: &quot;DM Mono&quot;, monospace;
+                  font-size: 0.82rem;
+                "
+              >
+                f(x) = x³<br />
+                ∂/∂x (x³) = 3x²
+              </div>
+            </div>
+            <div class="mini-card">
+              <div class="card-title">Partial Derivative</div>
+              <div
+                class="card-body"
+                style="
+                  font-family: &quot;DM Mono&quot;, monospace;
+                  font-size: 0.82rem;
+                "
+              >
+                f(x,y) = x³ + y²<br />
+                ∂f/∂x = 3x² + 0<br />
+                ∂f/∂y = 0 + 2y
+              </div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="note-item">
+            <span class="bullet">–</span
+            ><span class="prose"
+              ><span class="keyword">Learning Rate (α)</span> decides how fast
+              or slow movement will happen in +ve or −ve gradient.</span
+            >
+          </div>
+          <div class="note-item">
+            <span class="bullet">•</span
+            ><span
+              >Do not take too large or small α rate — it will
+              <span class="kw-red">not</span> or
+              <span class="kw-red">miss</span> the global minima if it is
+              large.</span
+            >
+          </div>
+
+          <div class="divider"></div>
+
+          <h3
+            style="
+              font-family: &quot;Playfair Display&quot;, serif;
+              font-size: 1.05rem;
+              font-weight: 700;
+              color: var(--accent-blue);
+              margin: 10px 0 8px;
+            "
+          >
+            How It Works?
+          </h3>
+          <ol class="numbered-list">
+            <li>
+              Start with <span class="keyword">random weight</span> (slopes).
+            </li>
+            <li>
+              Calculate the gradient (the derivative) of the cost function. This
+              tells you direction of
+              <span class="kw-red">steepest increase</span>.
+            </li>
+            <li>
+              Take small step in the
+              <span class="keyword">opposite direction</span> &amp; keep
+              changing θ₀, θ₁ to reduce J(θ₀, θ₁) until we reach the global
+              minima.
+            </li>
+            <li>
+              Repeat until the cost function
+              <span class="keyword">stops changing</span>.
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- PAGE 8 · UPDATE RULES -->
+      <div class="page" id="update">
+        <div class="spiral"></div>
+        <div class="page-content">
+          <div class="section-tag">Putting it Together</div>
+          <h2 class="section-title">Gradient Descent with m &amp; b :-</h2>
+
+          <div class="prose" style="margin-bottom: 12px">
+            Cost function with coefficient m and intercept b:
+          </div>
+
+          <div class="formula-box">
+            <span class="label">Cost Function</span>
+            J = 1/(2m) · Σ<sub>i=1</sub><sup>m</sup> ( yⁱ − (mx<sup>i</sup> + b)
+            )²
+          </div>
+
+          <div class="prose" style="margin: 12px 0 6px">
+            Partial derivatives respectively:
+          </div>
+
+          <div class="formula-box">
+            <span class="label">∂J/∂m (w.r.t coefficient)</span>
+            ∂/∂m = 2/m · Σ<sub>i=1</sub><sup>m</sup> −xⁱ (yⁱ − (mx<sup>i</sup> +
+            b))
+          </div>
+          <div class="formula-box">
+            <span class="label">∂J/∂b (w.r.t intercept)</span>
+            ∂/∂b = 2/m · Σ<sub>i=1</sub><sup>m</sup> −(yⁱ − (mx<sup>i</sup> +
+            b))
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="prose" style="margin-bottom: 10px">
+            Then we apply the <span class="keyword">update rules</span>:
+          </div>
+
+          <div class="formula-box">
+            <span class="label">Update Rules (apply simultaneously)</span>
+            m := m − α · ∂/∂m<br />
+            b := b − α · ∂/∂b<br /><br />
+            where α = <span class="hi">learning rate = 0.01</span>
+          </div>
+
+          <div class="highlight" style="margin-top: 14px">
+            <strong>Note:</strong> We need to always
+            <span class="keyword">normalize &amp; standardize</span> the data
+            feature <strong>before training</strong>.
+          </div>
+
+          <div class="code-block" style="margin-top: 14px">
+            <span class="c-comment"># Gradient Descent implementation</span>
+            <span class="c-keyword">def</span>
+            <span class="c-func">gradient_descent</span>(X, y, lr=<span class="c-num">0.01</span >, epochs=<span class="c-num">1000</span>):<br>
+            m, b = <span class="c-num">0</span>, <span class="c-num">0</span><br>
+            n =<span class="c-func">len</span>(y)<br>
+            <span class="c-keyword">for</span> _ <span class="c-keyword">in</span><span class="c-func">range</span>(epochs):<br>
+             y_pred = m * X + b dm =(<span class="c-num">-2</span>/n) *<span class="c-func">sum</span>(X * (y - y_pred)) db = (<span class="c-num">-2</span>/n) * <span class="c-func">sum</span>(y - y_pred) m -= lr * dm b -=
+            lr * db <span class="c-keyword">return</span> m, b
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- .notebook -->
+  </body>
+</html>

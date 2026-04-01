@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LR – Normalisation & Hyperparameter Tuning</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400;500&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1209;
+    --paper: #faf6ee;
+    --paper-dark: #f0e9d8;
+    --rule: #d4c9aa;
+    --accent-red: #c0392b;
+    --accent-green: #2d6a4f;
+    --accent-blue: #1a3a5c;
+    --accent-amber: #b5860d;
+    --shadow: rgba(80,60,20,0.13);
+    --bg: #e8dfc8;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    font-family: 'Crimson Pro', Georgia, serif;
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 40px 20px 60px;
+    background-image:
+      radial-gradient(ellipse at 15% 10%, #d4c9a870, transparent 50%),
+      radial-gradient(ellipse at 85% 90%, #c8b89060, transparent 50%);
+  }
+
+  .page-header { text-align:center; margin-bottom:28px; animation:fadeDown .6s ease both; }
+  .page-header h1 {
+    font-family:'Playfair Display',serif; font-size:clamp(1.8rem,4vw,2.8rem);
+    font-weight:700; color:var(--accent-blue); letter-spacing:.02em;
+    border-bottom:2.5px double var(--accent-amber); display:inline-block; padding-bottom:8px;
+  }
+  .page-header .subtitle {
+    font-family:'DM Mono',monospace; font-size:.7rem; letter-spacing:.15em;
+    text-transform:uppercase; color:var(--accent-amber); margin-top:6px;
+  }
+
+  .tab-bar { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:24px; animation:fadeDown .5s ease both; }
+  .tab {
+    padding:5px 14px; font-family:'DM Mono',monospace; font-size:.68rem;
+    letter-spacing:.1em; text-transform:uppercase; border:1.5px solid var(--rule);
+    border-radius:100px; background:var(--paper); color:#6b5a3a;
+    cursor:pointer; text-decoration:none; transition:all .2s ease;
+  }
+  .tab:hover { background:var(--accent-blue); color:#fff; border-color:var(--accent-blue); transform:translateY(-1px); }
+
+  .notebook { max-width:900px; margin:0 auto; display:flex; flex-direction:column; gap:26px; }
+
+  .page {
+    background:var(--paper); border-radius:2px;
+    box-shadow:0 1px 3px var(--shadow),0 8px 28px var(--shadow),inset 0 0 0 1px rgba(200,180,130,.3);
+    position:relative; overflow:hidden;
+    animation:slideUp .5s ease both;
+  }
+  .page:nth-child(2){animation-delay:.08s}
+  .page:nth-child(3){animation-delay:.16s}
+  .page:nth-child(4){animation-delay:.24s}
+  .page:nth-child(5){animation-delay:.32s}
+
+  .page::before {
+    content:''; position:absolute; inset:0;
+    background-image:repeating-linear-gradient(to bottom,transparent,transparent 31px,var(--rule) 31px,var(--rule) 32px);
+    background-position:0 50px; pointer-events:none; z-index:0;
+  }
+  .page::after {
+    content:''; position:absolute; left:68px; top:0; bottom:0;
+    width:1.5px; background:rgba(192,57,43,.32); pointer-events:none; z-index:1;
+  }
+  .spiral {
+    position:absolute; left:0; top:0; bottom:0; width:26px;
+    background:repeating-linear-gradient(to bottom,transparent 0,transparent 22px,#c8b890 22px,#c8b890 24px,transparent 24px,transparent 32px);
+    border-right:2px solid #c0a870;
+  }
+  .page-content { position:relative; z-index:2; padding:20px 28px 30px 88px; }
+
+  /* Typography */
+  .section-tag {
+    font-family:'DM Mono',monospace; font-size:.67rem; font-weight:500;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--accent-red);
+    margin-bottom:12px; display:flex; align-items:center; gap:10px;
+  }
+  .section-tag::after { content:''; flex:1; height:1px; background:var(--rule); }
+  .section-title {
+    font-family:'Playfair Display',serif; font-size:1.5rem; font-weight:700;
+    color:var(--accent-blue); margin-bottom:16px; line-height:1.25;
+  }
+  .section-title.underlined { text-decoration:underline; text-underline-offset:4px; }
+
+  .prose { font-size:1.04rem; line-height:2rem; font-weight:300; color:#2a1f0e; }
+  .note-item { display:flex; gap:10px; line-height:2rem; font-size:1.04rem; font-weight:300; color:#2a1f0e; margin-bottom:2px; }
+  .bullet { color:var(--accent-red); font-weight:600; flex-shrink:0; font-size:1.1rem; line-height:2rem; }
+  .alpha-label { font-family:'DM Mono',monospace; font-size:.82rem; color:var(--accent-green); font-weight:500; min-width:1.6rem; }
+
+  .formula-box {
+    display:block; margin:14px 0; padding:10px 22px;
+    border:2px solid var(--accent-red); border-radius:3px;
+    font-family:'DM Mono',monospace; font-size:.9rem;
+    background:rgba(192,57,43,.04); text-align:center;
+    color:var(--ink); letter-spacing:.03em; line-height:1.9;
+  }
+  .formula-box .label { font-size:.68rem; text-transform:uppercase; letter-spacing:.12em; color:var(--accent-red); display:block; margin-bottom:4px; font-weight:500; }
+  .formula-box .hi { color:var(--accent-red); font-weight:500; }
+
+  .highlight {
+    background:rgba(181,134,13,.09); border-left:3px solid var(--accent-amber);
+    padding:10px 14px; border-radius:0 4px 4px 0; margin:10px 0;
+    font-size:.97rem; line-height:1.7; color:#3a2800;
+  }
+  .sticky {
+    background:#fffde7; border-top:4px solid var(--accent-amber);
+    padding:9px 14px; font-size:.94rem; font-style:italic; color:#3a2800;
+    box-shadow:2px 3px 8px rgba(181,134,13,.22); margin:10px 0;
+    border-radius:0 0 3px 3px; transform:rotate(-0.3deg);
+  }
+  .warn-box {
+    background:rgba(192,57,43,.06); border:1.5px solid var(--accent-red);
+    border-radius:4px; padding:10px 16px; margin:12px 0;
+    font-size:.97rem; line-height:1.7; color:#3a0000;
+  }
+  .warn-box .wtitle { font-family:'DM Mono',monospace; font-size:.68rem; text-transform:uppercase; letter-spacing:.12em; color:var(--accent-red); font-weight:500; display:block; margin-bottom:4px; }
+
+  .code-block {
+    background:#1e1612; color:#e8d8b8; font-family:'DM Mono',monospace;
+    font-size:.8rem; line-height:1.8; padding:16px 20px; border-radius:4px;
+    margin:12px 0; overflow-x:auto; border-left:3px solid var(--accent-amber);
+  }
+  .c-comment { color:#7a9e7e; font-style:italic; }
+  .c-keyword  { color:#e07b54; }
+  .c-func     { color:#7ec8e3; }
+  .c-string   { color:#b5d99c; }
+  .c-num      { color:#f0c060; }
+
+  .divider { height:1px; background:var(--rule); margin:16px 0; }
+  .keyword  { color:var(--accent-green); font-weight:600; }
+  .kw-red   { color:var(--accent-red);   font-weight:600; }
+  .kw-blue  { color:var(--accent-blue);  font-weight:600; }
+  .sub-list { padding-left:22px; }
+
+  .nb-table { width:100%; border-collapse:collapse; margin:14px 0; font-size:.93rem; }
+  .nb-table th { background:var(--paper-dark); font-family:'DM Mono',monospace; font-size:.7rem; text-transform:uppercase; letter-spacing:.1em; padding:7px 12px; border:1px solid var(--rule); color:var(--accent-blue); font-weight:500; text-align:left; }
+  .nb-table td { padding:8px 12px; border:1px solid var(--rule); vertical-align:top; line-height:1.55; }
+  .nb-table tr:nth-child(even) td { background:rgba(212,201,170,.18); }
+
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:10px; }
+  @media(max-width:560px){ .two-col{grid-template-columns:1fr} .page-content{padding-left:72px;padding-right:16px} .page::after{left:52px} }
+
+  .mini-card { background:var(--paper-dark); border-radius:3px; padding:10px 14px; border:1px solid var(--rule); }
+  .mini-card .card-title { font-family:'Playfair Display',serif; font-size:.95rem; font-weight:700; color:var(--accent-blue); margin-bottom:5px; }
+  .mini-card .card-body { font-size:.91rem; line-height:1.65; font-weight:300; }
+
+  .numbered-list { counter-reset:item; list-style:none; }
+  .numbered-list li { counter-increment:item; display:flex; gap:10px; line-height:2rem; font-size:1.02rem; font-weight:300; margin-bottom:2px; }
+  .numbered-list li::before { content:counter(item)"."; font-family:'DM Mono',monospace; font-size:.8rem; font-weight:500; color:var(--accent-amber); min-width:1.5rem; padding-top:3px; }
+
+  /* method badge */
+  .method-badge {
+    display:inline-block; font-family:'DM Mono',monospace; font-size:.78rem;
+    background:var(--accent-blue); color:#fff; padding:2px 10px; border-radius:100px;
+    font-weight:500; letter-spacing:.05em; margin-right:6px;
+  }
+  .method-badge.green { background:var(--accent-green); }
+  .method-badge.amber { background:var(--accent-amber); }
+
+  /* hyper param group */
+  .param-group { margin:10px 0; }
+  .param-group .pg-title { font-family:'Playfair Display',serif; font-size:1rem; font-weight:700; color:var(--accent-blue); margin-bottom:4px; }
+  .param-group .pg-body { font-size:.97rem; line-height:1.7; font-weight:300; padding-left:18px; }
+  .param-group .pg-body .chip {
+    display:inline-block; font-family:'DM Mono',monospace; font-size:.72rem;
+    background:rgba(45,106,79,.12); border:1px solid var(--accent-green);
+    color:var(--accent-green); padding:1px 8px; border-radius:3px; margin:2px 3px 2px 0;
+  }
+
+  @keyframes fadeDown { from{opacity:0;transform:translateY(-14px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes slideUp  { from{opacity:0;transform:translateY(22px)}  to{opacity:1;transform:translateY(0)} }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>LR – Normalisation &amp; Tuning</h1>
+  <p class="subtitle">StandardScaler · Feature Scaling · Hyperparameter Tuning</p>
+</div>
+
+<div class="tab-bar">
+  <a class="tab" href="#scaler">StandardScaler</a>
+  <a class="tab" href="#why">Why Scale?</a>
+  <a class="tab" href="#formula">Formula</a>
+  <a class="tab" href="#methods">fit / transform</a>
+  <a class="tab" href="#notes">Notes</a>
+  <a class="tab" href="#hyperparam">Hyperparams</a>
+  <a class="tab" href="#tuning">Tuning Methods</a>
+  <a class="tab" href="#code">Pipeline Code</a>
+</div>
+
+<div class="notebook">
+
+  <!-- PAGE 1 · STANDARD SCALER -->
+  <div class="page" id="scaler">
+    <div class="spiral"></div>
+    <div class="page-content">
+      <div class="section-tag">Feature Scaling</div>
+      <h2 class="section-title underlined"># StandardScaler :-</h2>
+
+      <div class="note-item"><span class="bullet">•</span><span class="prose"><span class="keyword">StandardScaler</span> ensures all features are on the <span class="kw-blue">same scale</span> (mean = 0, std = 1).</span></div>
+
+      <div class="divider"></div>
+
+      <div class="section-tag" id="why">Why Scale?</div>
+      <div class="note-item"><span class="bullet">•</span><span class="prose"><strong>Why?</strong> — To make sure no features dominate just because of its size.</span></div>
+
+      <table class="nb-table" style="margin-top:10px;">
+        <thead><tr><th>Feature</th><th>Values</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Age</strong></td><td>20, 30, 40</td></tr>
+          <tr><td><strong>Salary</strong></td><td>20,000 · 80,000 · 1,50,000</td></tr>
+        </tbody>
+      </table>
+
+      <div class="warn-box">
+        <span class="wtitle">⚠ Problem</span>
+        Salary is much larger than Age → it may cause following problems:
+      </div>
+
+      <div class="two-col">
+        <div class="mini-card">
+          <div class="card-title">1. Model Becomes Biased</div>
+          <div class="card-body">
+            ŷ = w₁·age + w₂·salary<br><br>
+            Since w₂ dominates, <span style="color:var(--accent-red)">Age may be ignored</span>.
+          </div>
+        </div>
+        <div class="mini-card">
+          <div class="card-title">2. Gradient Descent Unstable</div>
+          <div class="card-body">
+            Cost function becomes <span style="color:var(--accent-red)">skewed</span> (elongated shape). Gradient descent:<br>
+            • Zig-zags<br>
+            • Takes longer to converge<br>
+            • Might even <span style="color:var(--accent-red)">fail</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="section-tag" id="formula">Formula</div>
+      <div class="note-item"><span class="bullet">•</span><span>Normalisation of trained data / feature are required for: <span class="keyword">Linear Regression</span> · Logistic · SVM · KNN · PCA</span></div>
+
+      <div class="formula-box" style="margin-top:12px;">
+        <span class="label">Z-Score Standardisation Formula</span>
+        z = (x − μ) / σ<br><br>
+        where &nbsp; μ = mean &nbsp;·&nbsp; σ = standard deviation
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 2 · fit / transform / fit_transform -->
+  <div class="page" id="methods">
+    <div class="spiral"></div>
+    <div class="page-content">
+      <div class="section-tag">How We Use</div>
+      <h2 class="section-title underlined">Scaler Methods :-</h2>
+
+      <div class="two-col">
+        <div class="mini-card">
+          <div class="card-title"><span class="method-badge">1</span> fit()</div>
+          <div class="card-body">
+            <strong>Learn parameters</strong> (does NOT change data).<br>
+            Internally calculates mean (μ) &amp; standard deviation (σ).<br><br>
+            <span style="font-family:'DM Mono',monospace;font-size:.8rem;color:var(--accent-blue)">scaler.fit(X_train)</span>
+            <br><em style="font-size:.88rem;">→ shows nothing when printed</em>
+          </div>
+        </div>
+        <div class="mini-card">
+          <div class="card-title"><span class="method-badge green">2</span> transform()</div>
+          <div class="card-body">
+            <strong>Apply transformation</strong> using learned values.<br>
+            Computes features using previously learned mean &amp; std.<br><br>
+            <span style="font-family:'DM Mono',monospace;font-size:.8rem;color:var(--accent-blue)">scaler.transform(X)</span><br>
+            <em style="font-size:.88rem;">→ [[-1., -1.], [1., 1.]]</em>
+          </div>
+        </div>
+        <div class="mini-card" style="grid-column:span 2;">
+          <div class="card-title"><span class="method-badge amber">3</span> fit_transform()</div>
+          <div class="card-body">
+            <strong>Do both together</strong> — learn + apply in one step. Use on <span style="color:var(--accent-green);font-weight:600">training data only</span>.
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <h3 style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;color:var(--accent-blue);margin-bottom:10px;">Example Usage:</h3>
+
+      <div class="code-block">
+<span class="c-keyword">from</span> sklearn.preprocessing <span class="c-keyword">import</span> <span class="c-func">StandardScaler</span>
+
+scaler = <span class="c-func">StandardScaler</span>()
+
+<span class="c-comment"># eg: X = [[2000, 6000], [8000, 12000]]</span>
+
+<span class="c-comment"># fit — learns mean & std (shows nothing)</span>
+y = scaler.<span class="c-func">fit</span>(X)
+<span class="c-func">print</span>(y)  <span class="c-comment"># shows nothing</span>
+
+<span class="c-comment"># transform — applies scaling</span>
+<span class="c-func">print</span>(scaler.<span class="c-func">transform</span>(X))
+<span class="c-comment"># [[-1., -1.], [1., 1.]]</span>
+
+<span class="c-comment"># Standard usage</span>
+scaled_X_train = scaler.<span class="c-func">fit_transform</span>(X_train)   <span class="c-comment"># training</span>
+scaled_X_test  = scaler.<span class="c-func">transform</span>(X_test)          <span class="c-comment"># testing</span>
+      </div>
+
+      <div class="divider"></div>
+      <div class="section-tag" id="notes">Critical Notes</div>
+
+      <div class="warn-box">
+        <span class="wtitle">⚠ Training vs Testing Scaling Rule</span>
+        • If you are training scaling → must use <strong>fit_transform()</strong> method.<br>
+        • But in testing scaling → must use <strong>transform()</strong> method only,<br>
+        because it makes the model learn from test data — which it is <span style="color:var(--accent-red);font-weight:600">NOT supposed to see</span>.
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 3 · HYPERPARAMETERS -->
+  <div class="page" id="hyperparam">
+    <div class="spiral"></div>
+    <div class="page-content">
+      <div class="section-tag">Advanced</div>
+      <h2 class="section-title underlined">Does LR have Hyperparameter Tuning?</h2>
+
+      <div class="note-item"><span class="bullet">–</span><span class="prose">Basic Ordinary Least Regression has almost <span class="keyword">no hyperparameters</span>.</span></div>
+      <div class="note-item"><span class="bullet">–</span><span class="prose">But once we use Regularization, optimization methods, or feature transformations → <span class="kw-blue">tuning becomes very important</span>.</span></div>
+
+      <div class="divider"></div>
+
+      <div class="prose" style="margin-bottom:12px;"><strong>Main Hyperparameters in Linear Regression:</strong></div>
+
+      <div class="param-group">
+        <div class="pg-title">a. Regularization Strength</div>
+        <div class="pg-body">Controls <span class="keyword">model complexity</span>.
+          <br><span class="chip">Ridge</span><span class="chip">Lasso</span><span class="chip">Elastic Net</span>
+        </div>
+      </div>
+
+      <div class="param-group">
+        <div class="pg-title">b. Learning Rate (α)</div>
+        <div class="pg-body">Used in <span class="keyword">Gradient Descent</span>. Controls step size during optimization.</div>
+      </div>
+
+      <div class="param-group">
+        <div class="pg-title">c. No. of Iterations</div>
+        <div class="pg-body">How many times model trains (epochs).</div>
+      </div>
+
+      <div class="param-group">
+        <div class="pg-title">d. Polynomial Degree</div>
+        <div class="pg-body">Controls <span class="keyword">model flexibility</span> — higher degree = more complex curve.</div>
+      </div>
+
+      <div class="param-group">
+        <div class="pg-title">e. Feature Selection Choices</div>
+        <div class="pg-body">Which features to include/exclude from model.</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="section-tag" id="tuning">Tuning Methods</div>
+      <div class="prose" style="margin-bottom:10px;"><strong>Linear Regression Hyperparameter Tuning Methods:</strong></div>
+
+      <ol class="numbered-list">
+        <li><span class="method-badge">a</span> <span class="keyword">Grid Search</span> — exhaustive search over param grid</li>
+        <li><span class="method-badge green">b</span> <span class="keyword">Random Search</span> — random sampling over param space</li>
+        <li><span class="method-badge amber">c</span> <span class="keyword">Cross-Validation</span> (cross_val_score) — reliable error estimate</li>
+        <li><span class="method-badge" style="background:var(--accent-red)">d ★</span> <span class="keyword">Regularization Path Method</span></li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- PAGE 4 · PIPELINE CODE -->
+  <div class="page" id="code">
+    <div class="spiral"></div>
+    <div class="page-content">
+      <div class="section-tag">Full Example</div>
+      <h2 class="section-title"># GridSearchCV Pipeline :-</h2>
+
+      <div class="code-block">
+<span class="c-keyword">from</span> sklearn.model_selection <span class="c-keyword">import</span> train_test_split, GridSearchCV
+<span class="c-keyword">from</span> sklearn.preprocessing  <span class="c-keyword">import</span> StandardScaler
+<span class="c-keyword">from</span> sklearn.linear_model   <span class="c-keyword">import</span> Ridge
+<span class="c-keyword">from</span> sklearn.pipeline       <span class="c-keyword">import</span> Pipeline
+<span class="c-keyword">from</span> sklearn.metrics        <span class="c-keyword">import</span> r2_score
+
+<span class="c-comment"># Train-test split</span>
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=<span class="c-num">0.2</span>)
+
+<span class="c-comment"># Build Pipeline</span>
+pipeline = <span class="c-func">Pipeline</span>([
+    (<span class="c-string">'scaler'</span>, <span class="c-func">StandardScaler</span>()),
+    (<span class="c-string">'model'</span>,  <span class="c-func">Ridge</span>())
+])
+
+<span class="c-comment"># Define Hyperparameters</span>
+params = {<span class="c-string">'model__alpha'</span>: [<span class="c-num">0.01</span>, <span class="c-num">0.1</span>, <span class="c-num">1</span>, <span class="c-num">10</span>, <span class="c-num">100</span>]}
+
+<span class="c-comment"># Apply Grid Search + Cross Validation</span>
+grid = <span class="c-func">GridSearchCV</span>(pipeline,
+                    params,
+                    cv=<span class="c-num">5</span>,
+                    scoring=<span class="c-string">'r2'</span>)
+
+grid.<span class="c-func">fit</span>(X_train, y_train)
+
+<span class="c-comment"># Best param</span>
+<span class="c-func">print</span>(<span class="c-string">'Best alpha :'</span>, grid.best_params_)
+
+<span class="c-comment"># Evaluate on Test Data</span>
+best_model = grid.best_estimator_
+y_pred     = best_model.<span class="c-func">predict</span>(X_test)
+
+<span class="c-func">print</span>(<span class="c-string">"R² Score"</span>, <span class="c-func">r2_score</span>(y_test, y_pred))
+      </div>
+
+      <div class="sticky">Note: We will learn further in <strong>details</strong>.</div>
+
+      <div class="highlight" style="margin-top:12px;">
+        <strong>Pipeline Summary:</strong><br>
+        <span class="method-badge" style="font-size:.7rem;">1</span> Split data →
+        <span class="method-badge green" style="font-size:.7rem;">2</span> Build Pipeline (Scaler + Model) →
+        <span class="method-badge amber" style="font-size:.7rem;">3</span> Define param grid →
+        <span class="method-badge" style="background:var(--accent-red);font-size:.7rem;">4</span> GridSearchCV →
+        <span class="method-badge" style="font-size:.7rem;">5</span> Evaluate R²
+      </div>
+    </div>
+  </div>
+
+</div><!-- .notebook -->
+</body>
+</html>

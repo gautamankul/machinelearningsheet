@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LR – Evaluation Metrics</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400;500&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1209;
+    --paper: #faf6ee;
+    --paper-dark: #f0e9d8;
+    --rule: #d4c9aa;
+    --accent-red: #c0392b;
+    --accent-green: #2d6a4f;
+    --accent-blue: #1a3a5c;
+    --accent-amber: #b5860d;
+    --shadow: rgba(80,60,20,0.13);
+    --bg: #e8dfc8;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    font-family: 'Crimson Pro', Georgia, serif;
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 40px 20px 60px;
+    background-image:
+      radial-gradient(ellipse at 15% 10%, #d4c9a870, transparent 50%),
+      radial-gradient(ellipse at 85% 90%, #c8b89060, transparent 50%);
+  }
+
+  .page-header { text-align:center; margin-bottom:28px; animation:fadeDown .6s ease both; }
+  .page-header h1 {
+    font-family:'Playfair Display',serif; font-size:clamp(1.8rem,4vw,2.8rem);
+    font-weight:700; color:var(--accent-blue); letter-spacing:.02em;
+    border-bottom:2.5px double var(--accent-amber); display:inline-block; padding-bottom:8px;
+  }
+  .page-header .subtitle {
+    font-family:'DM Mono',monospace; font-size:.7rem; letter-spacing:.15em;
+    text-transform:uppercase; color:var(--accent-amber); margin-top:6px;
+  }
+
+  .tab-bar { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:24px; animation:fadeDown .5s ease both; }
+  .tab {
+    padding:5px 14px; font-family:'DM Mono',monospace; font-size:.68rem;
+    letter-spacing:.1em; text-transform:uppercase; border:1.5px solid var(--rule);
+    border-radius:100px; background:var(--paper); color:#6b5a3a;
+    cursor:pointer; text-decoration:none; transition:all .2s ease;
+  }
+  .tab:hover { background:var(--accent-blue); color:#fff; border-color:var(--accent-blue); transform:translateY(-1px); }
+
+  .notebook { max-width:920px; margin:0 auto; display:flex; flex-direction:column; gap:26px; }
+
+  .page {
+    background:var(--paper); border-radius:2px;
+    box-shadow:0 1px 3px var(--shadow),0 8px 28px var(--shadow),inset 0 0 0 1px rgba(200,180,130,.3);
+    position:relative; overflow:hidden;
+    animation:slideUp .5s ease both;
+  }
+  .page:nth-child(2){animation-delay:.07s}
+  .page:nth-child(3){animation-delay:.14s}
+  .page:nth-child(4){animation-delay:.21s}
+  .page:nth-child(5){animation-delay:.28s}
+  .page:nth-child(6){animation-delay:.35s}
+
+  .page::before {
+    content:''; position:absolute; inset:0;
+    background-image:repeating-linear-gradient(to bottom,transparent,transparent 31px,var(--rule) 31px,var(--rule) 32px);
+    background-position:0 50px; pointer-events:none; z-index:0;
+  }
+  .page::after {
+    content:''; position:absolute; left:68px; top:0; bottom:0;
+    width:1.5px; background:rgba(192,57,43,.32); pointer-events:none; z-index:1;
+  }
+  .spiral {
+    position:absolute; left:0; top:0; bottom:0; width:26px;
+    background:repeating-linear-gradient(to bottom,transparent 0,transparent 22px,#c8b890 22px,#c8b890 24px,transparent 24px,transparent 32px);
+    border-right:2px solid #c0a870;
+  }
+  .page-content { position:relative; z-index:2; padding:20px 28px 30px 88px; }
+
+  /* ── typography ── */
+  .section-tag {
+    font-family:'DM Mono',monospace; font-size:.67rem; font-weight:500;
+    letter-spacing:.14em; text-transform:uppercase; color:var(--accent-red);
+    margin-bottom:12px; display:flex; align-items:center; gap:10px;
+  }
+  .section-tag::after { content:''; flex:1; height:1px; background:var(--rule); }
+
+  .section-title {
+    font-family:'Playfair Display',serif; font-size:1.48rem; font-weight:700;
+    color:var(--accent-blue); margin-bottom:14px; line-height:1.25;
+  }
+  .section-title.underlined { text-decoration:underline; text-underline-offset:4px; }
+
+  .prose { font-size:1.04rem; line-height:2rem; font-weight:300; color:#2a1f0e; }
+  .note-item { display:flex; gap:10px; line-height:2rem; font-size:1.04rem; font-weight:300; color:#2a1f0e; margin-bottom:2px; }
+  .bullet { color:var(--accent-red); font-weight:600; flex-shrink:0; font-size:1.1rem; line-height:2rem; }
+  .alpha-label { font-family:'DM Mono',monospace; font-size:.82rem; color:var(--accent-green); font-weight:500; min-width:1.6rem; }
+  .sub-list { padding-left:22px; }
+
+  /* ── formula ── */
+  .formula-box {
+    display:block; margin:14px 0; padding:12px 22px;
+    border:2px solid var(--accent-red); border-radius:3px;
+    font-family:'DM Mono',monospace; font-size:.92rem;
+    background:rgba(192,57,43,.04); text-align:center;
+    color:var(--ink); letter-spacing:.03em; line-height:2;
+  }
+  .formula-box .label {
+    font-size:.67rem; text-transform:uppercase; letter-spacing:.12em;
+    color:var(--accent-red); display:block; margin-bottom:4px; font-weight:500;
+  }
+  .formula-box .hi { color:var(--accent-red); font-weight:600; }
+  .formula-box .grn { color:var(--accent-green); font-weight:600; }
+
+  /* ── pro/con grid ── */
+  .adv-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:14px 0; }
+  @media(max-width:580px){ .adv-grid{grid-template-columns:1fr} }
+
+  .adv-card { border-radius:3px; padding:10px 14px; border:1px solid var(--rule); }
+  .adv-card.pro  { background:rgba(45,106,79,.07);  border-color:rgba(45,106,79,.35); }
+  .adv-card.con  { background:rgba(192,57,43,.06);  border-color:rgba(192,57,43,.3); }
+  .adv-card .ctitle {
+    font-family:'DM Mono',monospace; font-size:.68rem; text-transform:uppercase;
+    letter-spacing:.12em; font-weight:500; margin-bottom:6px;
+  }
+  .adv-card.pro .ctitle { color:var(--accent-green); }
+  .adv-card.con .ctitle { color:var(--accent-red); }
+  .adv-card ul { list-style:none; }
+  .adv-card ul li { font-size:.95rem; line-height:1.75; padding-left:14px; position:relative; }
+  .adv-card ul li::before { content:'•'; position:absolute; left:0; }
+  .adv-card.pro ul li::before { color:var(--accent-green); }
+  .adv-card.con ul li::before { color:var(--accent-red); }
+
+  /* ── misc ── */
+  .highlight {
+    background:rgba(181,134,13,.09); border-left:3px solid var(--accent-amber);
+    padding:10px 14px; border-radius:0 4px 4px 0; margin:10px 0;
+    font-size:.97rem; line-height:1.75; color:#3a2800;
+  }
+  .sticky {
+    background:#fffde7; border-top:4px solid var(--accent-amber);
+    padding:9px 14px; font-size:.94rem; font-style:italic; color:#3a2800;
+    box-shadow:2px 3px 8px rgba(181,134,13,.22); margin:10px 0;
+    border-radius:0 0 3px 3px; transform:rotate(-0.3deg);
+  }
+  .divider { height:1px; background:var(--rule); margin:16px 0; }
+  .keyword  { color:var(--accent-green); font-weight:600; }
+  .kw-red   { color:var(--accent-red);   font-weight:600; }
+  .kw-blue  { color:var(--accent-blue);  font-weight:600; }
+
+  /* metric type chips */
+  .metric-types { display:flex; flex-direction:column; gap:6px; margin:12px 0; }
+  .mtype {
+    display:flex; align-items:baseline; gap:12px;
+    padding:7px 14px; border-radius:3px; border:1px solid var(--rule);
+    background:var(--paper-dark); font-size:.97rem; line-height:1.6;
+  }
+  .mtype .num {
+    font-family:'DM Mono',monospace; font-size:.72rem; font-weight:500;
+    color:var(--accent-blue); min-width:1.2rem;
+  }
+  .mtype .chips { font-family:'DM Mono',monospace; font-size:.76rem; color:var(--accent-amber); }
+
+  /* R2 interpretation band */
+  .r2-band {
+    display:flex; gap:0; margin:14px 0; border-radius:4px; overflow:hidden;
+    border:1px solid var(--rule); font-family:'DM Mono',monospace; font-size:.78rem;
+  }
+  .r2-band .seg {
+    flex:1; padding:8px 10px; text-align:center; line-height:1.5;
+  }
+  .r2-band .seg.bad   { background:rgba(192,57,43,.12);  color:var(--accent-red);   border-right:1px solid var(--rule); }
+  .r2-band .seg.poor  { background:rgba(181,134,13,.12); color:var(--accent-amber); border-right:1px solid var(--rule); }
+  .r2-band .seg.good  { background:rgba(45,106,79,.10);  color:var(--accent-green); border-right:1px solid var(--rule); }
+  .r2-band .seg.best  { background:rgba(26,58,92,.10);   color:var(--accent-blue); }
+
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:10px; }
+  @media(max-width:560px){ .two-col{grid-template-columns:1fr} .page-content{padding-left:72px;padding-right:16px} .page::after{left:52px} }
+
+  .mini-card { background:var(--paper-dark); border-radius:3px; padding:10px 14px; border:1px solid var(--rule); }
+  .mini-card .card-title { font-family:'Playfair Display',serif; font-size:.95rem; font-weight:700; color:var(--accent-blue); margin-bottom:5px; }
+  .mini-card .card-body { font-size:.91rem; line-height:1.65; font-weight:300; }
+
+  @keyframes fadeDown { from{opacity:0;transform:translateY(-14px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes slideUp  { from{opacity:0;transform:translateY(22px)}  to{opacity:1;transform:translateY(0)} }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>LR – Evaluation Metrics</h1>
+  <p class="subtitle">MSE · MAE · RMSE · R² · Adjusted R²</p>
+</div>
+
+<div class="tab-bar">
+  <a class="tab" href="#overview">Overview</a>
+  <a class="tab" href="#mse">MSE</a>
+  <a class="tab" href="#mae">MAE</a>
+  <a class="tab" href="#rmse">RMSE</a>
+  <a class="tab" href="#r2">R² Score</a>
+  <a class="tab" href="#limits">Limitations</a>
+  <a class="tab" href="#adj-r2">Adjusted R²</a>
+</div>
+
+<div class="notebook">
+
+  <!-- PAGE 1 · OVERVIEW -->
+  <div class="page" id="overview">
+    <div class="spiral"></div>
+    <div class="page-content">
+      <div class="section-tag">Introduction</div>
+      <h2 class="section-title underlined"># Linear Regression Evaluation Metrics :-</h2>
+
+      <div class="note-item"><span class="bullet">–</span><span class="prose">In regression, our model predicts a number. So metrics tell us <em>"how far are my predictions from actual values?"</em></span></div>
+
+      <div class="divider"></div>
+      <div class="prose" style="margin-bottom:10px;"><strong>Linear Regression Metrics Evaluation have following types:</strong></div>
+
+      <div class="metric-types">
+        <div class="mtype">
+          <span class="num">1.</span>
+          <span><strong>Error Based</strong></span>
+          <span class="chips">MAE &nbsp;·&nbsp; MSE &nbsp;·&nbsp; RMSE &nbsp;·&nbsp; RMSLE</span>
+        </div>
+        <div class="mtype">
+          <span class="num">2.</span>
+          <span><strong>Goodness-of-Fit</strong></span>
+          <span class="chips">R² &nbsp;·&nbsp; Adjusted-R² &nbsp;·&nbsp; Explained Variance</span>
+        </div>
+        <div class="mtype">
+          <span class="num">3.</span>
+          <span><strong>Percentage-Based</strong></span>
+          <span class="chips">MAPE &nbsp;·&nbsp; SMAPE</span>
+        </div>
+        <div class="mtype">
+          <span class="num">4.</span>
+          <span><strong>Advanced</strong></span>
+          <span class="chips">Huber Loss &nbsp;·&nbsp; Quantile Loss</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 2 · MSE + MAE -->
+  <div class="page" id="mse">
+    <div class="spiral"></div>
+    <div class="page-content">
+      <div class="section-tag">A) Error Based — i</div>
+      <h2 class="section-title underlined">MSE (Mean Squared Error) :-</h2>
+
+      <div class="note-item"><span class="bullet">•</span><span>It is average of <span class="keyword">squared</span> absolute error.</span></div>
+
+      <div class="formula-box">
+        <span class="label">MSE / Cost Function J(θ)</span>
+        J(θ) = <span class="hi">1/(2m)</span> · Σ<sub>i=1</sub><sup>m</sup> (yᵢ − ŷᵢ)²
+      </div>
+      <div class="formula-box">
+        <span class="label">Also Written As (MAE-style note)</span>
+        MAE = <span class="hi">1/n</span> · Σ (y − ŷ)²
+      </div>
+
+      <div class="note-item" style="margin-top:6px;"><span class="bullet">•</span><span>In MSE, penalizes <span class="kw-red">big errors heavily</span>.</span></div>
+      <div class="note-item"><span class="bullet">•</span><span>Units becomes <span class="kw-red">squared</span> (hard to interpret).</span></div>
+
+      <div class="adv-grid">
+        <div class="adv-card pro">
+          <div class="ctitle">✓ Advantages</div>
+          <ul>
+            <li>Differentiable — we can update coefficient and reach <strong>global minima</strong>.</li>
+            <li>Has one local &amp; global minima.</li>
+          </ul>
+        </div>
+        <div class="adv-card con">
+          <div class="ctitle">✗ Disadvantages</div>
+          <ul>
+            <li>Not Robust to outliers — Mean will try to capture outliers features.</li>
+            <li>Changes its units like (cm²) — hard to read.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="section-tag" id="mae">A) Error Based — ii</div>
+      <h2 class="section-title underlined">MAE (Mean Absolute Error) :-</h2>
+
+      <div class="formula-box">
+        <span class="label">MAE Cost Function</span>
+        MAE = <span class="hi">1/n</span> · Σ<sub>i=1</sub><sup>n</sup> | yᵢ − ŷᵢ |
+      </div>
+
+      <div class="adv-grid">
+        <div class="adv-card pro">
+          <div class="ctitle">✓ Advantages</div>
+          <ul>
+            <li><strong>Robust to outliers</strong> — it will not move to capture outliers.</li>
+            <li>Will be in <strong>same unit</strong> so easy to interpret since it is in same unit.</li>
+          </ul>
+        </div>
+        <div class="adv-card con">
+          <div class="ctitle">✗ Disadvantages</div>
+          <ul>
+            <li>Convergence usually takes time.</li>
+            <li>Optimization is very complex.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 3 · RMSE -->
+  <div class="page" id="rmse">
+    <div class="spiral"></div>
+    <div class="page-content">
+      <div class="section-tag">A) Error Based — iii</div>
+      <h2 class="section-title underlined">RMSE (Root Mean Squared Error) :-</h2>
+
+      <div class="note-item"><span class="bullet">•</span><span>Square root of MSE.</span></div>
+      <div class="note-item"><span class="bullet">•</span><span>Same units as <span class="keyword">target variable</span>.</span></div>
+      <div class="note-item"><span class="bullet">•</span><span><span class="keyword">Most commonly used</span> in ML.</span></div>
+
+      <div class="formula-box">
+        <span class="label">RMSE Formula</span>
+        RMSE = <span class="hi">√MSE</span>
+      </div>
+
+      <div class="two-col" style="margin-top:14px;">
+        <div class="mini-card">
+          <div class="card-title">MSE vs RMSE</div>
+          <div class="card-body">
+            MSE penalizes large errors more (squared).<br>
+            RMSE brings units back to the <span style="color:var(--accent-green);font-weight:600">original scale</span> — easier to interpret.
+          </div>
+        </div>
+        <div class="mini-card">
+          <div class="card-title">When to use RMSE?</div>
+          <div class="card-body">
+            When you want <span style="color:var(--accent-blue);font-weight:600">interpretable</span> error in same unit as output, and you still want to penalize large errors.
+          </div>
+        </div>
+      </div>
+
+      <div class="highlight" style="margin-top:14px;">
+        <strong>Quick Comparison:</strong><br>
+        <strong>MAE</strong> = robust, same unit, slow convergence<br>
+        <strong>MSE</strong> = fast convergence, squared units, outlier-sensitive<br>
+        <strong>RMSE</strong> = best of both — same unit, punishes large errors, most common
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 4 · R² -->
+  <div class="page" id="r2">
+    <div class="spiral"></div>
+    <div class="page-content">
+      <div class="section-tag">B) Goodness-of-Fit — i</div>
+      <h2 class="section-title underlined">R² — Coefficient of Determination :-</h2>
+
+      <div class="note-item"><span class="bullet">–</span><span>R² also called the <span class="keyword">coefficient of determination</span>.</span></div>
+      <div class="note-item"><span class="bullet">–</span><span>It measures how well your regression model explains the variability of the <span class="kw-blue">dependent variables</span>.</span></div>
+      <div class="note-item"><span class="bullet">–</span><span>What R² tells you: what <span class="keyword">percentage of the variation</span> in the output (y) is explained by all the input features (x₁, x₂, …, xₙ).</span></div>
+
+      <div class="formula-box">
+        <span class="label">R² Formula</span>
+        R² = 1 − (SS<sub>res</sub> / SS<sub>tot</sub>)
+      </div>
+
+      <div class="two-col">
+        <div class="mini-card">
+          <div class="card-title">SS<sub>res</sub> (Residual Sum)</div>
+          <div class="card-body" style="font-family:'DM Mono',monospace;font-size:.82rem;">
+            SS<sub>res</sub> = Σ (y − ŷ)²<br>
+            Sum of squared residuals
+          </div>
+        </div>
+        <div class="mini-card">
+          <div class="card-title">SS<sub>tot</sub> (Total Sum)</div>
+          <div class="card-body" style="font-family:'DM Mono',monospace;font-size:.82rem;">
+            SS<sub>tot</sub> = Σ (y − ȳ)²<br>
+            Sum of total variation<br>
+            <em>Always SS<sub>tot</sub> ≥ SS<sub>res</sub></em>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="prose" style="margin-bottom:10px;"><strong>Interpretation:</strong></div>
+
+      <div class="r2-band">
+        <div class="seg bad">R² = 0<br>Model useless<br>(no variance explained)</div>
+        <div class="seg poor">R² &lt; 0<br>Worst case<br>(below baseline)</div>
+        <div class="seg good">R² = 0.85<br>85% variance<br>explained by X ★</div>
+        <div class="seg best">R² = 1<br>Perfect fit<br>(all explained)</div>
+      </div>
+
+      <div class="sticky">Ex: if R² = 0.85, then <strong>85% of the variation in y is explained by X</strong>.</div>
+    </div>
+  </div>
+
+  <!-- PAGE 5 · R² LIMITATIONS -->
+  <div class="page" id="limits">
+    <div class="spiral"></div>
+    <div class="page-content">
+      <div class="section-tag">R² — Limitations</div>
+      <h2 class="section-title">Limitations of R² :-</h2>
+
+      <div class="note-item"><span class="bullet">–</span><span class="prose">R² <span class="kw-red">always increases</span> when you add more predictors, even if they are irrelevant.</span></div>
+      <div class="note-item" style="padding-left:18px;"><span class="bullet">–</span><span>This can give a <span class="kw-red">false sense of improvement</span>.</span></div>
+
+      <div class="note-item" style="margin-top:6px;"><span class="bullet">★★</span><span>R² always increases when we add more feature — even if the new feature is <span class="kw-red">useless</span>.</span></div>
+
+      <div class="divider"></div>
+
+      <div class="prose" style="margin-bottom:8px;"><strong>Why this is a problem in Multiple Linear Regression:</strong></div>
+      <div class="note-item"><span class="bullet">•</span><span>We may add many features → R² will keep <span class="kw-red">increasing</span>.</span></div>
+      <div class="note-item"><span class="bullet">•</span><span>But the model may become <span class="kw-red">overfitting</span>.</span></div>
+      <div class="note-item"><span class="bullet">•</span><span>Coefficients become <span class="kw-red">unstable</span>.</span></div>
+      <div class="note-item"><span class="bullet">•</span><span><span class="kw-red">Multicollinearity</span> increases.</span></div>
+
+      <div class="sticky">So R² <span style="color:var(--accent-red);">misleads us</span> in Multiple Linear Regression.</div>
+
+      <div class="highlight">
+        <strong>Solution → Use Adjusted R²</strong><br>
+        Adjusted R² corrects this by penalizing unnecessary features, so it only increases when a new predictor <span class="keyword">genuinely improves</span> the model.
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 6 · ADJUSTED R² -->
+  <div class="page" id="adj-r2">
+    <div class="spiral"></div>
+    <div class="page-content">
+      <div class="section-tag">B) Goodness-of-Fit — ii</div>
+      <h2 class="section-title underlined">Adjusted R² :-</h2>
+
+      <div class="note-item"><span class="bullet">•</span><span>It will <span class="keyword">penalize</span> the non-correlated attributes / features.</span></div>
+      <div class="note-item"><span class="bullet">•</span><span>In R², by accounting for the <span class="kw-blue">no. of predictors</span> in the model.</span></div>
+      <div class="note-item"><span class="bullet">•</span><span>It prevents overfitting of <span class="kw-red">unnecessary variables</span>.</span></div>
+
+      <div class="formula-box" style="margin-top:14px;">
+        <span class="label">Adjusted R² Formula</span>
+        Adjusted R² = 1 − <span class="hi">( (1 − R²)(n − 1) ) / ( n − k − 1 )</span>
+        <br><br>
+        where &nbsp; <span class="grn">n</span> = number of observations &nbsp;·&nbsp; <span class="grn">k</span> = no. of predictors
+      </div>
+
+      <div class="formula-box" style="margin-top:8px;">
+        <span class="label">Recall: R² =</span>
+        R² = 1 − SS<sub>res</sub> / SS<sub>tot</sub>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="adv-grid">
+        <div class="adv-card pro">
+          <div class="ctitle">✓ Why Adjusted R² is Better</div>
+          <ul>
+            <li>Only increases when new predictor <strong>genuinely</strong> improves model.</li>
+            <li>Penalizes useless features — prevents false high R².</li>
+            <li><strong>Better for Multiple Linear Regression</strong>.</li>
+          </ul>
+        </div>
+        <div class="adv-card con">
+          <div class="ctitle">✗ When NOT to use</div>
+          <ul>
+            <li>For Simple Linear Regression (1 feature), R² is sufficient.</li>
+            <li>When comparing models with very different sample sizes.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="highlight" style="margin-top:12px;">
+        <strong>★ Rule of Thumb:</strong><br>
+        • Use <span class="keyword">R²</span> for simple linear regression (1 feature).<br>
+        • Use <span class="keyword">Adjusted R²</span> for multiple linear regression (2+ features).<br>
+        • Adjusted R² corrects this by penalizing unnecessary features, so it only increases when a new predictor <strong>genuinely improves</strong> the model.
+      </div>
+    </div>
+  </div>
+
+</div><!-- .notebook -->
+</body>
+</html>
